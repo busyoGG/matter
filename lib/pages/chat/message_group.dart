@@ -713,8 +713,9 @@ class MessageGroupWidget extends ConsumerWidget {
       MediaQuery.of(context).size.width * 0.70,
       800.0,
     );
+    final colors = Theme.of(context).colorScheme;
     final textStyle = TextStyle(
-      color: isMe ? Colors.white : AppColors.onBackground,
+      color: isMe ? colors.onPrimary : colors.onSurface,
       fontSize: 15,
       height: 1.35,
     );
@@ -774,7 +775,7 @@ class MessageGroupWidget extends ConsumerWidget {
             key: ValueKey('formatted-body:${message.id}'),
             html: readerHtml,
             style: textStyle,
-            accentColor: isMe ? Colors.white : AppColors.secondary,
+            accentColor: isMe ? colors.onPrimary : AppColors.secondary,
             mentionDisplayNames: mentionDisplayNames,
             onMentionTap: onMentionTap,
             trailingMetadata: metadata,
@@ -788,7 +789,7 @@ class MessageGroupWidget extends ConsumerWidget {
             metadata: metadata,
             maxWidth: maxBubbleWidth - 28,
             minWidth: replyPreviewWidth,
-            linkColor: isMe ? Colors.white : AppColors.secondary,
+            linkColor: isMe ? colors.onPrimary : AppColors.secondary,
             onUrlTap: linkRouter.open,
             mentionDisplayNames: mentionDisplayNames,
             mentionedUserIds: message.mentionedUserIds,
@@ -802,7 +803,7 @@ class MessageGroupWidget extends ConsumerWidget {
       constraints: BoxConstraints(maxWidth: maxBubbleWidth),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: isMe ? AppColors.primary : AppColors.surfaceElevated,
+        color: isMe ? colors.primary : colors.surfaceContainerLow,
         borderRadius: _messageBorderRadius(
           isMe: isMe,
           isFirst: isFirst,
@@ -880,7 +881,10 @@ class MessageGroupWidget extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const Divider(color: AppColors.surfaceVariant, height: 0.5),
+                Divider(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                  height: 0.5,
+                ),
                 Expanded(
                   child: ListView.builder(
                     controller: scrollController,
@@ -2181,7 +2185,8 @@ class _FloatingMessageMenuState extends State<_FloatingMessageMenu> {
     );
   }
 
-  Widget _buildMenu() {
+  Widget _buildMenu(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final msg = widget.message;
     final isEvent = msg.msgType == MessageType.event;
     return Material(
@@ -2203,8 +2208,7 @@ class _FloatingMessageMenuState extends State<_FloatingMessageMenu> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (!isEvent) _buildEmojiRow(),
-            if (!isEvent)
-              const Divider(color: AppColors.surfaceVariant, height: 0.5),
+            if (!isEvent) Divider(color: colors.outlineVariant, height: 0.5),
             _buildActionRow(),
           ],
         ),
@@ -2241,7 +2245,7 @@ class _FloatingMessageMenuState extends State<_FloatingMessageMenu> {
                 child: child,
               ),
             ),
-            child: _buildMenu(),
+            child: _buildMenu(context),
           ),
         ),
       ],

@@ -149,6 +149,7 @@ class _VideoMessageBubbleState extends ConsumerState<VideoMessageBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final controller = _controller;
     final size = _bubbleSize(
       context,
@@ -163,14 +164,14 @@ class _VideoMessageBubbleState extends ConsumerState<VideoMessageBubble> {
       decoration: BoxDecoration(
         color: widget.isMe
             ? AppColors.primary.withValues(alpha: 0.3)
-            : AppColors.surfaceElevated,
+            : colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Stack(
         children: [
           Positioned.fill(
             child: controller == null
-                ? _buildPlaceholder(_error != null)
+                ? _buildPlaceholder(context, _error != null)
                 : ValueListenableBuilder<VideoPlayerValue>(
                     valueListenable: controller,
                     builder: (context, value, child) =>
@@ -231,23 +232,28 @@ class _VideoMessageBubbleState extends ConsumerState<VideoMessageBubble> {
     );
   }
 
-  Widget _buildPlaceholder(bool failed) {
+  Widget _buildPlaceholder(BuildContext context, bool failed) {
+    final colors = Theme.of(context).colorScheme;
+    final foreground = widget.isMe ? colors.onPrimary : colors.onSurface;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (failed)
-            const Icon(Icons.videocam_off_rounded, color: Colors.white70)
+            Icon(Icons.videocam_off_rounded, color: foreground)
           else
-            const SizedBox(
+            SizedBox(
               width: 22,
               height: 22,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              child: CircularProgressIndicator(
+                color: foreground,
+                strokeWidth: 2,
+              ),
             ),
           const SizedBox(height: 8),
           Text(
             failed ? '无法播放此视频' : '正在加载视频…',
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            style: TextStyle(color: foreground, fontSize: 12),
           ),
         ],
       ),

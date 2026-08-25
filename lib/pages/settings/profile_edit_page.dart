@@ -171,14 +171,15 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final fallbackName = _profile?.displayName.isNotEmpty == true
         ? _profile!.displayName
         : (ref.read(currentUserProvider)?.displayName ?? '我');
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: const Text('个人资料'),
+        backgroundColor: colorScheme.surface,
+        title: Text('个人资料'),
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
@@ -208,10 +209,10 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                                 width: 32,
                                 height: 32,
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary,
+                                  color: colorScheme.primary,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: AppColors.background,
+                                    color: colorScheme.surface,
                                     width: 2,
                                   ),
                                 ),
@@ -231,7 +232,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                       child: Text(
                         '点击头像更换',
                         style: TextStyle(
-                          color: AppColors.onSurfaceVariant,
+                          color: colorScheme.onSurfaceVariant,
                           fontSize: 12,
                         ),
                       ),
@@ -239,10 +240,10 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                     const SizedBox(height: 32),
 
                     // Display name editor
-                    const Text(
+                    Text(
                       '昵称',
                       style: TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -250,15 +251,17 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _nameController,
-                      style: const TextStyle(
-                        color: AppColors.onBackground,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 16,
                       ),
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: AppColors.surface,
+                        fillColor: colorScheme.surface,
                         hintText: '输入你的昵称',
-                        hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                        hintStyle: TextStyle(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(AppRadii.content),
                           borderSide: BorderSide.none,
@@ -266,14 +269,14 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                         suffixIcon: TextButton(
                           onPressed: _saving ? null : _saveName,
                           child: _saving
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 16,
                                   height: 16,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('保存'),
+                              : Text('保存'),
                         ),
                       ),
                       textInputAction: TextInputAction.done,
@@ -283,10 +286,10 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                     const SizedBox(height: 24),
 
                     // User ID (read-only)
-                    const Text(
+                    Text(
                       '用户 ID',
                       style: TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -299,7 +302,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                         vertical: 14,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: colorScheme.surface,
                         borderRadius: BorderRadius.circular(AppRadii.content),
                       ),
                       child: Text(
@@ -307,7 +310,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                             ref.read(currentUserProvider)?.id ??
                             '',
                         style: TextStyle(
-                          color: AppColors.onSurfaceVariant,
+                          color: colorScheme.onSurfaceVariant,
                           fontSize: 14,
                         ),
                       ),
@@ -316,7 +319,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                     Text(
                       '用户 ID 是你的唯一标识，无法更改',
                       style: TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 11,
                       ),
                     ),

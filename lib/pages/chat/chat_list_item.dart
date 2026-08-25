@@ -69,8 +69,9 @@ class ChatListItem extends ConsumerWidget {
     final hasUnread = overrideApplies
         ? unreadOverride!.unread
         : syncedHasUnread;
+    final colorScheme = Theme.of(context).colorScheme;
     final unreadAccent = room.isMuted
-        ? AppColors.onSurfaceVariant
+        ? colorScheme.onSurfaceVariant
         : AppColors.primary;
     // Same stale-override cleanup as the main room list: only a no-longer-
     // applicable override is dropped.
@@ -130,7 +131,7 @@ class ChatListItem extends ConsumerWidget {
           vertical: dense ? 6 : 8,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.surfaceVariant : null,
+          color: isSelected ? colorScheme.surfaceContainerHighest : null,
           borderRadius: BorderRadius.circular(AppRadii.button),
         ),
         child: Row(
@@ -149,14 +150,14 @@ class ChatListItem extends ConsumerWidget {
                   Row(
                     children: [
                       if (showRoomTypeIcon) ...[
-                        _roomTypeIcon(room.roomType),
+                        _roomTypeIcon(room.roomType, colorScheme),
                         const SizedBox(width: 4),
                       ],
                       Expanded(
                         child: Text(
                           room.name,
-                          style: const TextStyle(
-                            color: AppColors.onBackground,
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
                             fontSize: 15.5,
                             fontWeight: FontWeight.w600,
                           ),
@@ -170,7 +171,7 @@ class ChatListItem extends ConsumerWidget {
                           Icons.volume_off_rounded,
                           key: ValueKey('room-muted-icon:${room.id}'),
                           size: 15,
-                          color: AppColors.onSurfaceVariant,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ],
                       const SizedBox(width: 8),
@@ -179,7 +180,7 @@ class ChatListItem extends ConsumerWidget {
                         style: TextStyle(
                           color: hasUnread
                               ? unreadAccent
-                              : AppColors.onSurfaceVariant,
+                              : colorScheme.onSurfaceVariant,
                           fontSize: 12,
                           fontWeight: hasUnread
                               ? FontWeight.w600
@@ -206,8 +207,8 @@ class ChatListItem extends ConsumerWidget {
                               TextSpan(text: preview),
                             ],
                           ),
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 13.5,
                             height: 1.3,
                           ),
@@ -265,22 +266,18 @@ class ChatListItem extends ConsumerWidget {
     );
   }
 
-  Widget _roomTypeIcon(String roomType) {
+  Widget _roomTypeIcon(String roomType, ColorScheme colorScheme) {
     return switch (roomType) {
-      'dm' => const Icon(
-        Icons.person_rounded,
-        size: 14,
-        color: AppColors.primary,
-      ),
-      'space' => const Icon(
+      'dm' => Icon(Icons.person_rounded, size: 14, color: AppColors.primary),
+      'space' => Icon(
         Icons.account_tree_rounded,
         size: 14,
         color: AppColors.secondary,
       ),
-      _ => const Icon(
+      _ => Icon(
         Icons.group_rounded,
         size: 14,
-        color: AppColors.onSurfaceVariant,
+        color: colorScheme.onSurfaceVariant,
       ),
     };
   }
@@ -295,6 +292,7 @@ class ChatListItem extends ConsumerWidget {
     // every other P0 write path), not as whatever account is active when
     // the user taps an item.
     final sheetAccountUserId = ref.read(activeUserIdProvider) ?? '';
+    final colorScheme = Theme.of(context).colorScheme;
     BuildContext? sheetContextRef;
     final sheetRoute = showModalBottomSheet<void>(
       context: context,
@@ -309,7 +307,7 @@ class ChatListItem extends ConsumerWidget {
               // A Material host (not a bare decorated container) so the
               // sheet's ListTiles can paint their ink splashes and
               // backgrounds.
-              color: AppColors.surface,
+              color: colorScheme.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadii.surface),
               ),
@@ -323,9 +321,9 @@ class ChatListItem extends ConsumerWidget {
                         Icons.done_all_rounded,
                         color: AppColors.primary,
                       ),
-                      title: const Text(
+                      title: Text(
                         '标记为已读',
-                        style: TextStyle(color: AppColors.onBackground),
+                        style: TextStyle(color: colorScheme.onSurface),
                       ),
                       trailing: savingAction == 'read'
                           ? const SizedBox(
@@ -356,9 +354,9 @@ class ChatListItem extends ConsumerWidget {
                         Icons.mark_unread_chat_alt_rounded,
                         color: AppColors.primary,
                       ),
-                      title: const Text(
+                      title: Text(
                         '标记为未读',
-                        style: TextStyle(color: AppColors.onBackground),
+                        style: TextStyle(color: colorScheme.onSurface),
                       ),
                       trailing: savingAction == 'unread'
                           ? const SizedBox(

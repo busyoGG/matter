@@ -191,16 +191,14 @@ class _ComposerPickerPanelState extends State<ComposerPickerPanel> {
   }
 
   Widget _buildSheet(BuildContext context, ScrollController scrollController) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppRadii.surface),
-        border: Border.all(
-          color: AppColors.surfaceVariant.withValues(alpha: 0.65),
-          width: 1,
-        ),
+        border: Border.all(color: colors.outlineVariant, width: 1),
       ),
       child: Column(
         children: [
@@ -222,7 +220,7 @@ class _ComposerPickerPanelState extends State<ComposerPickerPanel> {
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.surfaceVariant),
+          Divider(height: 1, color: colors.outlineVariant),
           Expanded(
             child: switch (widget.tab) {
               ComposerPickerTab.emoji => EmojiPickerPanel(
@@ -507,6 +505,7 @@ class _StickerPackPanelState extends ConsumerState<StickerPackPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final packsAsync = ref.watch(stickerPacksProvider(widget.roomId));
 
     return packsAsync.when(
@@ -517,7 +516,7 @@ class _StickerPackPanelState extends ConsumerState<StickerPackPanel> {
         _syncVisibleStickers(packs);
         return _buildPackStream(packs);
       },
-      loading: () => const Center(
+      loading: () => Center(
         child: CircularProgressIndicator(
           color: AppColors.primary,
           strokeWidth: 2,
@@ -530,20 +529,14 @@ class _StickerPackPanelState extends ConsumerState<StickerPackPanel> {
             child: Text(
               '加载贴纸包失败',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppColors.onSurfaceVariant,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
             ),
           ),
-          const Expanded(
+          Expanded(
             child: Center(
               child: Text(
                 '当前无法读取可用贴纸包',
-                style: TextStyle(
-                  color: AppColors.onSurfaceVariant,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
               ),
             ),
           ),
@@ -553,12 +546,13 @@ class _StickerPackPanelState extends ConsumerState<StickerPackPanel> {
   }
 
   Widget _buildPackStream(List<StickerPack> packs) {
+    final colors = Theme.of(context).colorScheme;
     if (packs.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           '当前房间没有可用贴纸包',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
         ),
       );
     }
@@ -590,7 +584,7 @@ class _StickerPackPanelState extends ConsumerState<StickerPackPanel> {
             ),
           ),
         ),
-        const Divider(height: 1, color: AppColors.surfaceVariant),
+        Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant),
         Expanded(
           child: KeyedSubtree(
             key: _scrollViewportKey,
@@ -619,7 +613,7 @@ class _StickerPackPanelState extends ConsumerState<StickerPackPanel> {
                                 decoration: BoxDecoration(
                                   color: i == _activePackIndex
                                       ? AppColors.primary
-                                      : AppColors.onSurfaceVariant.withValues(
+                                      : colors.onSurfaceVariant.withValues(
                                           alpha: 0.65,
                                         ),
                                   shape: BoxShape.circle,
@@ -633,8 +627,8 @@ class _StickerPackPanelState extends ConsumerState<StickerPackPanel> {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: i == _activePackIndex
-                                        ? AppColors.onBackground
-                                        : AppColors.onSurface,
+                                        ? colors.onSurface
+                                        : colors.onSurfaceVariant,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -716,13 +710,17 @@ class _PackThumb extends StatelessWidget {
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.primary.withValues(alpha: 0.16)
-              : AppColors.surfaceVariant.withValues(alpha: 0.18),
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.16)
+              : Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: selected
-                ? AppColors.primary.withValues(alpha: 0.5)
-                : AppColors.surfaceVariant.withValues(alpha: 0.45),
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
+                : Theme.of(
+                    context,
+                  ).colorScheme.outlineVariant.withValues(alpha: 0.45),
           ),
         ),
         child: ClipRRect(
@@ -774,10 +772,14 @@ class _StickerCard extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Ink(
         decoration: BoxDecoration(
-          color: AppColors.surfaceVariant.withValues(alpha: 0.18),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: AppColors.surfaceVariant.withValues(alpha: 0.35),
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: 0.35),
             width: 0.6,
           ),
         ),
@@ -1015,23 +1017,24 @@ class _StickerFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final label = this.label;
     if (label != null && label.isNotEmpty) {
       return Center(
         child: Text(
           label,
-          style: const TextStyle(
-            color: AppColors.onSurfaceVariant,
+          style: TextStyle(
+            color: colors.onSurfaceVariant,
             fontSize: 15,
             fontWeight: FontWeight.w700,
           ),
         ),
       );
     }
-    return const Center(
+    return Center(
       child: Icon(
         Icons.sticky_note_2_rounded,
-        color: AppColors.onSurfaceVariant,
+        color: colors.onSurfaceVariant,
         size: 28,
       ),
     );
@@ -1051,6 +1054,7 @@ class _PickerTabChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return InkWell(
       borderRadius: BorderRadius.circular(AppRadii.button),
       onTap: onTap,
@@ -1060,18 +1064,18 @@ class _PickerTabChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? AppColors.primary.withValues(alpha: 0.16)
-              : AppColors.surfaceVariant.withValues(alpha: 0.45),
+              : colors.surfaceContainerHighest.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(AppRadii.button),
           border: Border.all(
             color: selected
                 ? AppColors.primary.withValues(alpha: 0.4)
-                : AppColors.surfaceVariant.withValues(alpha: 0.35),
+                : colors.outlineVariant.withValues(alpha: 0.35),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? AppColors.primary : AppColors.onSurfaceVariant,
+            color: selected ? AppColors.primary : colors.onSurfaceVariant,
             fontSize: 13,
             fontWeight: FontWeight.w700,
           ),

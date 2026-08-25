@@ -71,16 +71,17 @@ class _LinkPreviewFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final background = isMe
         ? Colors.black.withValues(alpha: 0.16)
-        : AppColors.surface;
+        : colors.surfaceContainerLow;
     final border = isMe
         ? Colors.white.withValues(alpha: 0.16)
-        : AppColors.surfaceVariant;
-    final titleColor = isMe ? Colors.white : AppColors.onBackground;
+        : colors.outlineVariant;
+    final titleColor = isMe ? colors.onPrimary : colors.onSurface;
     final secondaryColor = isMe
-        ? Colors.white.withValues(alpha: 0.72)
-        : AppColors.onSurfaceVariant;
+        ? colors.onPrimary.withValues(alpha: 0.72)
+        : colors.onSurfaceVariant;
     final linkColor = isMe
         ? Colors.white.withValues(alpha: 0.86)
         : AppColors.secondary;

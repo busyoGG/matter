@@ -86,6 +86,7 @@ class LocationMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final label = body.trim().isEmpty ? geoUri : body;
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
@@ -96,7 +97,7 @@ class LocationMessageBubble extends StatelessWidget {
             Material(
               color: isMe
                   ? AppColors.primary.withValues(alpha: 0.22)
-                  : AppColors.surfaceVariant,
+                  : colors.surfaceContainerLow,
               child: InkWell(
                 onTap: () => _open(context),
                 child: Padding(
@@ -113,17 +114,19 @@ class LocationMessageBubble extends StatelessWidget {
                       Flexible(
                         child: Text(
                           label,
-                          style: const TextStyle(
-                            color: AppColors.onBackground,
+                          style: TextStyle(
+                            color: isMe ? colors.onPrimary : colors.onSurface,
                             fontSize: 14,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(
+                      Icon(
                         Icons.open_in_new_rounded,
                         size: 18,
-                        color: AppColors.onSurfaceVariant,
+                        color: isMe
+                            ? colors.onPrimary
+                            : colors.onSurfaceVariant,
                       ),
                     ],
                   ),

@@ -17,8 +17,9 @@ void main() {
 
     testWidgets('uses the default surface color', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
+        MaterialApp(
+          theme: AppTheme.darkTheme,
+          home: const Scaffold(
             body: AppCard(child: SizedBox(width: 100, height: 100)),
           ),
         ),

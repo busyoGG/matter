@@ -20,6 +20,14 @@ class LiquidGlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    final glassBackground = isLight
+        ? AppColors.lightGlassBackground
+        : AppColors.glassBackground;
+    final glassBorder = isLight
+        ? AppColors.lightGlassBorder
+        : AppColors.glassBorder;
+
     return Padding(
       padding: margin,
       child: ClipRRect(
@@ -29,9 +37,9 @@ class LiquidGlassContainer extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: AppColors.glassBackground,
+              color: glassBackground,
               borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(color: AppColors.glassBorder, width: 0.8),
+              border: Border.all(color: glassBorder, width: 0.8),
             ),
             child: child,
           ),

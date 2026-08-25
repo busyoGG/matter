@@ -25,10 +25,11 @@ class DesktopRoomDetailsPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
     final membersAsync = ref.watch(roomMembersProvider(roomId));
 
     return ColoredBox(
-      color: AppColors.surface,
+      color: colorScheme.surface,
       child: Column(
         children: [
           Padding(
@@ -45,8 +46,8 @@ class DesktopRoomDetailsPanel extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     roomName,
-                    style: const TextStyle(
-                      color: AppColors.onBackground,
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -56,9 +57,9 @@ class DesktopRoomDetailsPanel extends ConsumerWidget {
                 ),
                 IconButton(
                   tooltip: '房间管理',
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.settings_rounded,
-                    color: AppColors.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                     size: 20,
                   ),
                   onPressed: () => Navigator.of(context).push(
@@ -76,7 +77,7 @@ class DesktopRoomDetailsPanel extends ConsumerWidget {
               ],
             ),
           ),
-          const Divider(color: AppColors.surfaceVariant, height: 1),
+          Divider(color: colorScheme.surfaceContainerHighest, height: 1),
           Expanded(
             child: membersAsync.when(
               data: (members) => ListView.builder(
@@ -88,8 +89,8 @@ class DesktopRoomDetailsPanel extends ConsumerWidget {
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
                       child: Text(
                         '成员 ${members.length}',
-                        style: const TextStyle(
-                          color: AppColors.onSurface,
+                        style: TextStyle(
+                          color: colorScheme.onSurface,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -107,8 +108,8 @@ class DesktopRoomDetailsPanel extends ConsumerWidget {
                     ),
                     title: Text(
                       member.name,
-                      style: const TextStyle(
-                        color: AppColors.onBackground,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -117,8 +118,8 @@ class DesktopRoomDetailsPanel extends ConsumerWidget {
                     ),
                     subtitle: Text(
                       member.id,
-                      style: const TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 12,
                       ),
                       maxLines: 1,
@@ -133,10 +134,10 @@ class DesktopRoomDetailsPanel extends ConsumerWidget {
                   strokeWidth: 2,
                 ),
               ),
-              error: (_, _) => const Center(
+              error: (_, _) => Center(
                 child: Text(
                   '无法加载成员',
-                  style: TextStyle(color: AppColors.onSurfaceVariant),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),
               ),
             ),

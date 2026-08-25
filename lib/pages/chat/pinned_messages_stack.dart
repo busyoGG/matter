@@ -137,15 +137,16 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
 
     const rowHeight = kPinnedMessageRowHeight;
     final visibleRows = messages.length.clamp(1, 3);
+    final colors = Theme.of(context).colorScheme;
     _reportVisibleCount(visibleRows);
     return Material(
-      color: AppColors.surface,
+      color: colors.surface,
       child: Container(
         key: const ValueKey('pinned-messages-stack'),
         height: rowHeight * visibleRows,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: AppColors.surfaceVariant, width: 0.5),
+            bottom: BorderSide(color: colors.outlineVariant, width: 0.5),
           ),
         ),
         child: ListView.builder(
@@ -188,7 +189,7 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
                           message.senderName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -198,8 +199,8 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
                           content,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
                             fontSize: 12.5,
                           ),
                         ),
@@ -212,9 +213,9 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
                     onPressed: _unpinningMessageIds.contains(message.id)
                         ? null
                         : () => unawaited(_unpin(message)),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.push_pin_outlined,
-                      color: AppColors.onSurfaceVariant,
+                      color: colors.onSurfaceVariant,
                       size: 19,
                     ),
                   ),

@@ -353,17 +353,18 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final ignoredUserIdsAsync = ref.watch(ignoredUserIdsProvider);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colors.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: const Text(
+        title: Text(
           '置顶消息',
           style: TextStyle(
-            color: AppColors.onBackground,
+            color: colors.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -374,8 +375,9 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
   }
 
   Widget _buildBody(AsyncValue<Set<String>> ignoredUserIdsAsync) {
+    final colors = Theme.of(context).colorScheme;
     if (_loading && _messages == null) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
           color: AppColors.primary,
           strokeWidth: 2,
@@ -384,10 +386,10 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
     }
     if (_messages == null) {
       if (_accountSwitched) {
-        return const Center(
+        return Center(
           child: Text(
             '账号已切换',
-            style: TextStyle(color: AppColors.onSurfaceVariant),
+            style: TextStyle(color: colors.onSurfaceVariant),
           ),
         );
       }
@@ -413,7 +415,7 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
           ),
         );
       }
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
           color: AppColors.primary,
           strokeWidth: 2,
@@ -435,9 +437,9 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
               hasScrollBody: false,
               child: Center(
                 child: _loadError == null
-                    ? const Text(
+                    ? Text(
                         '暂无置顶消息',
-                        style: TextStyle(color: AppColors.onSurfaceVariant),
+                        style: TextStyle(color: colors.onSurfaceVariant),
                       )
                     : _refreshErrorTile(),
               ),
@@ -453,8 +455,10 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         itemCount: messages.length + (_loadError == null ? 0 : 1),
-        separatorBuilder: (_, _) =>
-            const Divider(color: AppColors.surfaceVariant, height: 1),
+        separatorBuilder: (context, _) => Divider(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          height: 1,
+        ),
         itemBuilder: (context, index) {
           if (_loadError != null && index == 0) return _refreshErrorTile();
           final message = messages[index - (_loadError == null ? 0 : 1)];
@@ -474,14 +478,11 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
             onTap: ignoredSender
                 ? null
                 : () => Navigator.of(context).pop(message.id),
-            leading: const Icon(
-              Icons.push_pin_rounded,
-              color: AppColors.primary,
-            ),
+            leading: Icon(Icons.push_pin_rounded, color: AppColors.primary),
             title: Text(
               message.senderName,
-              style: const TextStyle(
-                color: AppColors.onBackground,
+              style: TextStyle(
+                color: colors.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -489,27 +490,24 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
               content,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.onSurfaceVariant,
-                height: 1.35,
-              ),
+              style: TextStyle(color: colors.onSurfaceVariant, height: 1.35),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   formatChatListTime(message.timestamp),
-                  style: const TextStyle(
-                    color: AppColors.onSurfaceVariant,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 12,
                   ),
                 ),
                 const SizedBox(width: 4),
                 IconButton(
                   tooltip: '取消置顶',
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.push_pin_outlined,
-                    color: AppColors.onSurfaceVariant,
+                    color: colors.onSurfaceVariant,
                     size: 18,
                   ),
                   onPressed:
@@ -631,17 +629,15 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
   }
 
   Widget _refreshErrorTile() {
+    final colors = Theme.of(context).colorScheme;
     return ListTile(
       leading: const Icon(Icons.sync_problem_rounded, color: AppColors.error),
-      title: const Text(
-        '刷新失败，当前显示上次结果',
-        style: TextStyle(color: AppColors.onBackground),
-      ),
+      title: Text('刷新失败，当前显示上次结果', style: TextStyle(color: colors.onSurface)),
       subtitle: Text(
         '$_loadError',
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: AppColors.onSurfaceVariant),
+        style: TextStyle(color: colors.onSurfaceVariant),
       ),
       trailing: IconButton(
         tooltip: '重试刷新',

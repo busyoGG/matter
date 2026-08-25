@@ -1219,10 +1219,12 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
           // when the dialog is gone.
           canPop: true,
           child: AlertDialog(
-            backgroundColor: AppColors.surface,
-            title: const Text(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            title: Text(
               '邀请用户',
-              style: TextStyle(color: AppColors.onBackground),
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.onSurface,
+              ),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1230,10 +1232,16 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                 TextField(
                   onChanged: (value) => invitedUserId = value,
                   autofocus: true,
-                  style: const TextStyle(color: AppColors.onBackground),
-                  decoration: const InputDecoration(
+                  style: TextStyle(
+                    color: Theme.of(dialogContext).colorScheme.onSurface,
+                  ),
+                  decoration: InputDecoration(
                     hintText: '@user:server.example',
-                    hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                    hintStyle: TextStyle(
+                      color: Theme.of(
+                        dialogContext,
+                      ).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
                 if (inviteError != null)
@@ -1241,10 +1249,7 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                     padding: const EdgeInsets.only(top: 12),
                     child: Text(
                       inviteError!,
-                      style: const TextStyle(
-                        color: AppColors.error,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: AppColors.error, fontSize: 13),
                     ),
                   ),
               ],
@@ -1442,7 +1447,7 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
               builder: (sheetContext, setSheetState) => Container(
                 margin: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppRadii.surface),
                 ),
                 child: SafeArea(
@@ -1469,11 +1474,15 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                           ),
                         )
                       : ignoredUsers.isEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.all(24),
+                      ? Padding(
+                          padding: const EdgeInsets.all(24),
                           child: Text(
                             '暂无已忽略用户',
-                            style: TextStyle(color: AppColors.onSurfaceVariant),
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         )
                       : Column(
@@ -1489,7 +1498,7 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                                 ),
                                 child: Text(
                                   _ignoredUsersSheetError!,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: AppColors.error,
                                     fontSize: 13,
                                   ),
@@ -1502,8 +1511,10 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                                   vertical: 8,
                                 ),
                                 itemCount: ignoredUsers.length,
-                                separatorBuilder: (_, _) => const Divider(
-                                  color: AppColors.surfaceVariant,
+                                separatorBuilder: (_, _) => Divider(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.outlineVariant,
                                   height: 1,
                                 ),
                                 itemBuilder: (context, index) {
@@ -1511,8 +1522,10 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                                   return ListTile(
                                     title: Text(
                                       userId,
-                                      style: const TextStyle(
-                                        color: AppColors.onBackground,
+                                      style: TextStyle(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
                                       ),
                                     ),
                                     trailing: IconButton(
@@ -1679,27 +1692,28 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
           // re-opened dialog renders a clean state.
           canPop: true,
           child: AlertDialog(
-            backgroundColor: AppColors.surface,
-            title: const Text(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            title: Text(
               '退出房间',
-              style: TextStyle(color: AppColors.onBackground),
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.onSurface,
+              ),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   '退出后将无法继续接收此房间的新消息。',
-                  style: TextStyle(color: AppColors.onSurface),
+                  style: TextStyle(
+                    color: Theme.of(dialogContext).colorScheme.onSurface,
+                  ),
                 ),
                 if (_leaveError != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
                     child: Text(
                       _leaveError!,
-                      style: const TextStyle(
-                        color: AppColors.error,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: AppColors.error, fontSize: 13),
                     ),
                   ),
               ],
@@ -1894,15 +1908,15 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
         ? knockRequestsAsync.error
         : null;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: const Text(
+        title: Text(
           '房间管理',
           style: TextStyle(
-            color: AppColors.onBackground,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -1929,10 +1943,12 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
               ),
             )
           : _accountSwitched
-          ? const Center(
+          ? Center(
               child: Text(
                 '账号已切换',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             )
           : _error != null
@@ -1994,8 +2010,8 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                           const SizedBox(height: 18),
                           TextField(
                             controller: _nameController,
-                            style: const TextStyle(
-                              color: AppColors.onBackground,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                             decoration: const InputDecoration(
                               labelText: '房间名称',
@@ -2006,8 +2022,8 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                             controller: _topicController,
                             minLines: 2,
                             maxLines: 4,
-                            style: const TextStyle(
-                              color: AppColors.onBackground,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                             decoration: const InputDecoration(
                               labelText: '房间主题',
@@ -2043,7 +2059,12 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                                     label: '成员刷新失败，显示缓存数据',
                                     onRetry: _retryMembers,
                                   ),
-                                  const Divider(height: 1),
+                                  Divider(
+                                    height: 1,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outlineVariant,
+                                  ),
                                 ],
                               ],
                             ),
@@ -2059,7 +2080,7 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                     itemBuilder: (context, index) {
                       final member = _members[index];
                       return ColoredBox(
-                        color: AppColors.surface,
+                        color: Theme.of(context).colorScheme.surface,
                         child: _memberTile(member),
                       );
                     },
@@ -2083,7 +2104,12 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                                       label: '加入请求刷新失败，显示缓存数据',
                                       onRetry: _retryKnocks,
                                     ),
-                                    const Divider(height: 1),
+                                    Divider(
+                                      height: 1,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.outlineVariant,
+                                    ),
                                   ],
                                 ],
                               ),
@@ -2095,7 +2121,7 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                       itemBuilder: (context, index) {
                         final request = knockRequests[index];
                         return ColoredBox(
-                          color: AppColors.surface,
+                          color: Theme.of(context).colorScheme.surface,
                           child: _knockTile(request),
                         );
                       },
@@ -2109,16 +2135,20 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                         children: [
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: const Text(
+                            title: Text(
                               '免打扰',
-                              style: TextStyle(color: AppColors.onBackground),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
                             subtitle: Text(
                               _mutedLoadError == null
                                   ? '不接收此房间的推送通知'
                                   : '通知设置加载/更新失败，点击重试',
-                              style: const TextStyle(
-                                color: AppColors.onSurfaceVariant,
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
                             value: _muted,
@@ -2432,8 +2462,8 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
       ),
       title: Text(
         request.displayName,
-        style: const TextStyle(
-          color: AppColors.onBackground,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -2441,7 +2471,10 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
         request.reason?.isNotEmpty == true
             ? '${request.userId}\n${request.reason}'
             : request.userId,
-        style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontSize: 12,
+        ),
       ),
       isThreeLine: request.reason?.isNotEmpty == true,
       trailing: Wrap(
@@ -2480,14 +2513,17 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
       ),
       title: Text(
         member.name,
-        style: const TextStyle(
-          color: AppColors.onBackground,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
           fontWeight: FontWeight.w600,
         ),
       ),
       subtitle: Text(
         member.id,
-        style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontSize: 12,
+        ),
       ),
       trailing: isCurrentUser
           ? null
@@ -2499,7 +2535,9 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                   : '忽略用户',
               icon: Icon(
                 ignored ? Icons.person_add_alt_rounded : Icons.block_rounded,
-                color: ignored ? AppColors.primary : AppColors.onSurfaceVariant,
+                color: ignored
+                    ? AppColors.primary
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               onPressed: _ignoredUsersLoadError == null
                   ? () => _setUserIgnored(member.id, !ignored)
@@ -2514,13 +2552,13 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
   }) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(
+      leading: Icon(
         Icons.error_outline_rounded,
-        color: AppColors.onSurfaceVariant,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
       title: Text(
         label,
-        style: const TextStyle(color: AppColors.onSurfaceVariant),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       trailing: IconButton(
         tooltip: '重试',
@@ -2536,7 +2574,7 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
     Widget? action,
   }) {
     return Material(
-      color: AppColors.surface,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(AppRadii.surface),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -2548,8 +2586,8 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      color: AppColors.onBackground,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
@@ -2572,7 +2610,9 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
     bool danger = false,
     bool saving = false,
   }) {
-    final color = danger ? AppColors.error : AppColors.onBackground;
+    final color = danger
+        ? AppColors.error
+        : Theme.of(context).colorScheme.onSurface;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: danger ? AppColors.error : AppColors.primary),
@@ -2583,9 +2623,9 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : const Icon(
+          : Icon(
               Icons.chevron_right_rounded,
-              color: AppColors.onSurfaceVariant,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
       onTap: onTap,
     );

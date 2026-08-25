@@ -212,6 +212,7 @@ class _PollMessageBubbleState extends ConsumerState<PollMessageBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final poll = widget.poll;
     final ended = poll.ended || _endedLocally;
     final reveal = poll.disclosed || ended;
@@ -232,26 +233,30 @@ class _PollMessageBubbleState extends ConsumerState<PollMessageBubble> {
             Material(
               color: widget.isMe
                   ? AppColors.primary.withValues(alpha: 0.18)
-                  : AppColors.surfaceVariant,
+                  : colors.surfaceContainerLow,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 26),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           Icons.poll_rounded,
-                          color: AppColors.primary,
+                          color: widget.isMe
+                              ? colors.onPrimary
+                              : colors.primary,
                           size: 18,
                         ),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Text(
                           '投票',
                           style: TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                            color: widget.isMe
+                                ? colors.onPrimary
+                                : colors.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -260,8 +265,10 @@ class _PollMessageBubbleState extends ConsumerState<PollMessageBubble> {
                     const SizedBox(height: 4),
                     Text(
                       poll.question,
-                      style: const TextStyle(
-                        color: AppColors.onBackground,
+                      style: TextStyle(
+                        color: widget.isMe
+                            ? colors.onPrimary
+                            : colors.onSurface,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -270,6 +277,7 @@ class _PollMessageBubbleState extends ConsumerState<PollMessageBubble> {
                     for (final answer in poll.answers)
                       _PollAnswerRow(
                         answer: answer,
+                        isMe: widget.isMe,
                         multi: multi,
                         selected: _selected.contains(answer.id),
                         count: _countFor(answer.id),
@@ -281,8 +289,10 @@ class _PollMessageBubbleState extends ConsumerState<PollMessageBubble> {
                     const SizedBox(height: 6),
                     Text(
                       '$totalVoters 人已投票${ended ? ' · 已结束' : ''}',
-                      style: const TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                      style: TextStyle(
+                        color: widget.isMe
+                            ? colors.onPrimary
+                            : colors.onSurfaceVariant,
                         fontSize: 11,
                       ),
                     ),
@@ -349,6 +359,7 @@ class _PollMessageBubbleState extends ConsumerState<PollMessageBubble> {
 
 class _PollAnswerRow extends StatelessWidget {
   final rust.PollAnswerInfo answer;
+  final bool isMe;
   final bool multi;
   final bool selected;
   final int count;
@@ -359,6 +370,7 @@ class _PollAnswerRow extends StatelessWidget {
 
   const _PollAnswerRow({
     required this.answer,
+    required this.isMe,
     required this.multi,
     required this.selected,
     required this.count,
@@ -370,6 +382,7 @@ class _PollAnswerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final fraction = totalVoters > 0 && reveal
         ? (count / totalVoters).clamp(0.0, 1.0)
         : 0.0;
@@ -382,7 +395,7 @@ class _PollAnswerRow extends StatelessWidget {
           ? Icons.radio_button_checked_rounded
           : Icons.radio_button_unchecked_rounded,
       size: 18,
-      color: AppColors.primary,
+      color: isMe ? colors.onPrimary : colors.primary,
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -414,8 +427,8 @@ class _PollAnswerRow extends StatelessWidget {
                     Expanded(
                       child: Text(
                         answer.text,
-                        style: const TextStyle(
-                          color: AppColors.onBackground,
+                        style: TextStyle(
+                          color: isMe ? colors.onPrimary : colors.onSurface,
                           fontSize: 14,
                         ),
                       ),
@@ -423,8 +436,10 @@ class _PollAnswerRow extends StatelessWidget {
                     if (reveal)
                       Text(
                         '$count',
-                        style: const TextStyle(
-                          color: AppColors.onSurfaceVariant,
+                        style: TextStyle(
+                          color: isMe
+                              ? colors.onPrimary
+                              : colors.onSurfaceVariant,
                           fontSize: 12,
                         ),
                       ),

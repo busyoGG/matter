@@ -38,20 +38,21 @@ class _ChatSearchBarState extends ConsumerState<ChatSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Container(
         height: 44,
         decoration: BoxDecoration(
-          color: AppColors.surfaceVariant,
+          color: colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadii.surface),
         ),
         child: Row(
           children: [
             const SizedBox(width: 12),
-            const Icon(
+            Icon(
               Icons.search_rounded,
-              color: AppColors.onSurfaceVariant,
+              color: colorScheme.onSurfaceVariant,
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -59,14 +60,11 @@ class _ChatSearchBarState extends ConsumerState<ChatSearchBar> {
               child: TextField(
                 controller: _controller,
                 focusNode: _focusNode,
-                style: const TextStyle(
-                  color: AppColors.onBackground,
-                  fontSize: 15,
-                ),
+                style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
                 decoration: InputDecoration(
                   hintText: '搜索聊天',
-                  hintStyle: const TextStyle(
-                    color: AppColors.onSurfaceVariant,
+                  hintStyle: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 15,
                   ),
                   border: InputBorder.none,
@@ -84,11 +82,11 @@ class _ChatSearchBarState extends ConsumerState<ChatSearchBar> {
             if (_isSearching)
               GestureDetector(
                 onTap: _stopSearch,
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 12),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
                   child: Icon(
                     Icons.close_rounded,
-                    color: AppColors.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                     size: 18,
                   ),
                 ),
@@ -112,17 +110,18 @@ class ChatSearchResults extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (query.trim().isEmpty) return const SizedBox.shrink();
 
+    final colorScheme = Theme.of(context).colorScheme;
     final resultsAsync = ref.watch(searchRoomsProvider(query));
 
     return resultsAsync.when(
       data: (rooms) {
         if (rooms.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(32),
+          return Padding(
+            padding: const EdgeInsets.all(32),
             child: Center(
               child: Text(
                 '没有找到匹配的聊天',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ),
           );
@@ -144,7 +143,7 @@ class ChatSearchResults extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         child: Text(
           '搜索失败: $err',
-          style: const TextStyle(color: AppColors.onSurfaceVariant),
+          style: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
       ),
     );

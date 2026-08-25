@@ -496,7 +496,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -539,6 +539,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildHeader() {
+    final colors = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         children: [
@@ -556,20 +557,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Matter',
             style: TextStyle(
-              color: AppColors.onBackground,
+              color: colors.onSurface,
               fontSize: 32,
               fontWeight: FontWeight.w800,
               letterSpacing: -1,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Matrix 客户端',
             style: TextStyle(
-              color: AppColors.onSurfaceVariant,
+              color: colors.onSurfaceVariant,
               fontSize: 15,
               fontWeight: FontWeight.w500,
             ),
@@ -580,9 +581,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildTabs() {
+    final colors = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
+        color: colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadii.surface),
       ),
       child: Row(
@@ -596,6 +598,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildTab(String label, int index) {
+    final colors = Theme.of(context).colorScheme;
     final isActive = _tabIndex == index;
     return Expanded(
       child: GestureDetector(
@@ -617,7 +620,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isActive ? Colors.white : AppColors.onSurfaceVariant,
+              color: isActive ? Colors.white : colors.onSurfaceVariant,
               fontSize: 14,
               fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
             ),
@@ -628,6 +631,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildHomeserverField() {
+    final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -640,9 +644,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             hintText: 'matrix.org',
             prefixIcon: Icons.dns_rounded,
             suffixIcon: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_drop_down_rounded,
-                color: AppColors.onSurfaceVariant,
+                color: colors.onSurfaceVariant,
               ),
               tooltip: '选择预设服务器',
               onPressed: _homeservers.isEmpty ? null : _showHomeserverDropdown,
@@ -658,6 +662,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   /// the trailing arrow button only — focusing the field stays a pure typing
   /// gesture and never opens this menu.
   Future<void> _showHomeserverDropdown() async {
+    final colors = Theme.of(context).colorScheme;
     final fieldContext = _homeserverFieldKey.currentContext;
     if (fieldContext == null) return;
     final renderBox = fieldContext.findRenderObject() as RenderBox?;
@@ -692,7 +697,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 Icon(
                   Icons.dns_rounded,
                   size: 18,
-                  color: AppColors.onSurfaceVariant,
+                  color: colors.onSurfaceVariant,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -702,8 +707,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     children: [
                       Text(
                         entry.label,
-                        style: const TextStyle(
-                          color: AppColors.onSurface,
+                        style: TextStyle(
+                          color: colors.onSurface,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -711,8 +716,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       if (entry.domain != entry.label)
                         Text(
                           entry.domain,
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
                             fontSize: 13,
                           ),
                         ),
@@ -761,7 +766,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             _isPasswordVisible
                 ? Icons.visibility_off_rounded
                 : Icons.visibility_rounded,
-            color: AppColors.onSurfaceVariant,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             size: 20,
           ),
           onPressed: () =>
@@ -796,7 +801,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             _isPasswordVisible
                 ? Icons.visibility_off_rounded
                 : Icons.visibility_rounded,
-            color: AppColors.onSurfaceVariant,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             size: 20,
           ),
           onPressed: () =>
@@ -956,13 +961,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildFooter() {
+    final colors = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: Text(
           'Made with AI by Matter Team',
           style: TextStyle(
-            color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
+            color: colors.onSurfaceVariant.withValues(alpha: 0.5),
             fontSize: 12,
           ),
         ),
@@ -971,10 +977,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildLabel(String text) {
+    final colors = Theme.of(context).colorScheme;
     return Text(
       text,
-      style: const TextStyle(
-        color: AppColors.onSurface,
+      style: TextStyle(
+        color: colors.onSurface,
         fontSize: 14,
         fontWeight: FontWeight.w600,
       ),
@@ -990,9 +997,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     TextInputAction? textInputAction,
     void Function(String)? onSubmitted,
   }) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
+        color: colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadii.surface),
       ),
       child: TextField(
@@ -1001,16 +1009,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         textInputAction: textInputAction,
         onSubmitted: onSubmitted,
         onChanged: (_) => _clearError(),
-        style: const TextStyle(color: AppColors.onBackground, fontSize: 15),
+        style: TextStyle(color: colors.onSurface, fontSize: 15),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(
-            color: AppColors.onSurfaceVariant,
-            fontSize: 15,
-          ),
+          hintStyle: TextStyle(color: colors.onSurfaceVariant, fontSize: 15),
           prefixIcon: Icon(
             prefixIcon,
-            color: AppColors.onSurfaceVariant,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             size: 20,
           ),
           suffixIcon: suffixIcon,

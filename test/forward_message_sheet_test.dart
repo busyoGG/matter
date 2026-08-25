@@ -185,6 +185,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final animatedNotice = tester.widget<AnimatedPositioned>(
+      find.byType(AnimatedPositioned),
+    );
+    expect(animatedNotice.duration, const Duration(milliseconds: 180));
     expect(find.text('成功转发到'), findsOneWidget);
     expect(find.text('目标会话'), findsOneWidget);
     final inputRect = tester.getRect(
@@ -207,6 +211,32 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('forward-success-room-link')));
     await tester.pump();
     expect(tapped, isTrue);
+  });
+
+  testWidgets('success notice can follow keyboard inset without animation', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: [
+              ForwardSuccessNoticeOverlay(
+                bottomInset: 300,
+                roomName: '目标会话',
+                onRoomTap: () {},
+                animatePosition: false,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final animatedNotice = tester.widget<AnimatedPositioned>(
+      find.byType(AnimatedPositioned),
+    );
+    expect(animatedNotice.duration, Duration.zero);
   });
 }
 

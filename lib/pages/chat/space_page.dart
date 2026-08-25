@@ -23,6 +23,7 @@ class SpacePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
     final spacesAsync = ref.watch(spacesProvider);
     final ungroupedAsync = ref.watch(ungroupedRoomsProvider);
     final connectionLabel = ref.watch(connectionLabelProvider);
@@ -43,15 +44,15 @@ class SpacePage extends ConsumerWidget {
                   titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
                   title: CascadeTitle(
                     text: titleText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.onBackground,
+                      color: colorScheme.onSurface,
                       letterSpacing: -0.5,
                     ),
                   ),
                 ),
-                backgroundColor: AppColors.background.withValues(alpha: 0.85),
+                backgroundColor: colorScheme.surface.withValues(alpha: 0.85),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
               spacesAsync.when(
@@ -82,12 +83,12 @@ class SpacePage extends ConsumerWidget {
                     ),
                   );
                 },
-                loading: () => const SliverToBoxAdapter(
+                loading: () => SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.all(32),
                     child: Center(
                       child: CircularProgressIndicator(
-                        color: AppColors.primary,
+                        color: colorScheme.primary,
                         strokeWidth: 2,
                       ),
                     ),
@@ -98,7 +99,7 @@ class SpacePage extends ConsumerWidget {
                     padding: const EdgeInsets.all(24),
                     child: Text(
                       '加载空间失败: $err',
-                      style: const TextStyle(color: AppColors.onSurfaceVariant),
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                   ),
                 ),
@@ -138,7 +139,7 @@ class SpacePage extends ConsumerWidget {
             bottom: 96,
             child: FloatingActionButton(
               onPressed: () => _showSpaceActions(context),
-              backgroundColor: AppColors.secondary,
+              backgroundColor: colorScheme.secondary,
               elevation: 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -156,6 +157,7 @@ class SpacePage extends ConsumerWidget {
   }
 
   void _showSpaceActions(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     // The sheet builder below shadows [context] with the sheet's own
     // context, which is unmounted once the sheet is dismissed. The
     // create/join dialogs opened from here keep the PAGE context for
@@ -168,7 +170,7 @@ class SpacePage extends ConsumerWidget {
       builder: (context) => Container(
         margin: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadii.surface),
         ),
         child: SafeArea(
@@ -201,6 +203,7 @@ class SpacePage extends ConsumerWidget {
   }
 
   void _showCreateSpaceDialog(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     // Account snapshot captured when the dialog OPENS: a switch while the
     // dialog is up must not redirect the write to the new account (same
     // discipline as every other P0 write path).
@@ -216,32 +219,29 @@ class SpacePage extends ConsumerWidget {
       builder: (ctx) => Consumer(
         builder: (_, ref, _) => StatefulBuilder(
           builder: (ctx, setDialogState) => AlertDialog(
-            backgroundColor: AppColors.surface,
+            backgroundColor: colorScheme.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadii.surface),
             ),
-            title: const Text(
-              '创建空间',
-              style: TextStyle(color: AppColors.onBackground),
-            ),
+            title: Text('创建空间', style: TextStyle(color: colorScheme.onSurface)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   onChanged: (value) => spaceName = value,
-                  style: const TextStyle(color: AppColors.onBackground),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: colorScheme.onSurface),
+                  decoration: InputDecoration(
                     hintText: '空间名称',
-                    hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                    hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
                   onChanged: (value) => spaceTopic = value,
-                  style: const TextStyle(color: AppColors.onBackground),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: colorScheme.onSurface),
+                  decoration: InputDecoration(
                     hintText: '空间说明（可选）',
-                    hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                    hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                 ),
                 if (createError != null)
@@ -249,10 +249,7 @@ class SpacePage extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 12),
                     child: Text(
                       createError!,
-                      style: const TextStyle(
-                        color: AppColors.error,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: colorScheme.error, fontSize: 13),
                     ),
                   ),
               ],
@@ -260,9 +257,9 @@ class SpacePage extends ConsumerWidget {
             actions: [
               TextButton(
                 onPressed: creating ? null : () => Navigator.of(ctx).pop(),
-                child: const Text(
+                child: Text(
                   '取消',
-                  style: TextStyle(color: AppColors.onSurfaceVariant),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),
               ),
               TextButton(
@@ -349,17 +346,17 @@ class SpacePage extends ConsumerWidget {
                         }
                       },
                 child: creating
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(
-                          color: AppColors.secondary,
+                          color: colorScheme.secondary,
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
+                    : Text(
                         '创建',
-                        style: TextStyle(color: AppColors.secondary),
+                        style: TextStyle(color: colorScheme.secondary),
                       ),
               ),
             ],
@@ -370,6 +367,7 @@ class SpacePage extends ConsumerWidget {
   }
 
   void _showJoinSpaceDialog(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     // Account snapshot captured when the dialog OPENS: a switch while the
     // dialog is up must not redirect the write to the new account.
     final container = ProviderScope.containerOf(context, listen: false);
@@ -386,23 +384,20 @@ class SpacePage extends ConsumerWidget {
         // after the dialog was dismissed mid-request.
         builder: (_, ref, _) => StatefulBuilder(
           builder: (ctx, setDialogState) => AlertDialog(
-            backgroundColor: AppColors.surface,
+            backgroundColor: colorScheme.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadii.surface),
             ),
-            title: const Text(
-              '加入空间',
-              style: TextStyle(color: AppColors.onBackground),
-            ),
+            title: Text('加入空间', style: TextStyle(color: colorScheme.onSurface)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   onChanged: (value) => spaceIdentifier = value,
-                  style: const TextStyle(color: AppColors.onBackground),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: colorScheme.onSurface),
+                  decoration: InputDecoration(
                     hintText: '!space_id:server 或 #alias:server',
-                    hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                    hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                   ),
                 ),
                 if (joinError != null)
@@ -410,10 +405,7 @@ class SpacePage extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 12),
                     child: Text(
                       joinError!,
-                      style: const TextStyle(
-                        color: AppColors.error,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: colorScheme.error, fontSize: 13),
                     ),
                   ),
               ],
@@ -421,9 +413,9 @@ class SpacePage extends ConsumerWidget {
             actions: [
               TextButton(
                 onPressed: joining ? null : () => Navigator.of(ctx).pop(),
-                child: const Text(
+                child: Text(
                   '取消',
-                  style: TextStyle(color: AppColors.onSurfaceVariant),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),
               ),
               TextButton(
@@ -512,17 +504,17 @@ class SpacePage extends ConsumerWidget {
                         }
                       },
                 child: joining
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(
-                          color: AppColors.secondary,
+                          color: colorScheme.secondary,
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
+                    : Text(
                         '加入',
-                        style: TextStyle(color: AppColors.secondary),
+                        style: TextStyle(color: colorScheme.secondary),
                       ),
               ),
             ],
@@ -540,6 +532,7 @@ class _SpaceRoomTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: InkWell(
@@ -552,7 +545,7 @@ class _SpaceRoomTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(AppRadii.surface),
           ),
           child: Row(
@@ -565,8 +558,8 @@ class _SpaceRoomTile extends StatelessWidget {
                   children: [
                     Text(
                       space.name,
-                      style: const TextStyle(
-                        color: AppColors.onBackground,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -574,17 +567,17 @@ class _SpaceRoomTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       '查看房间、成员和空间设置',
-                      style: const TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 13,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.onSurfaceVariant,
+                color: colorScheme.onSurfaceVariant,
               ),
             ],
           ),
@@ -607,12 +600,13 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceElevated,
+          color: colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(AppRadii.surface),
         ),
         child: Column(
@@ -620,8 +614,8 @@ class _SectionCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                color: AppColors.onBackground,
+              style: TextStyle(
+                color: colorScheme.onSurface,
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
               ),
@@ -629,8 +623,8 @@ class _SectionCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(
-                color: AppColors.onSurfaceVariant,
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
                 fontSize: 13,
                 height: 1.35,
               ),
@@ -651,10 +645,11 @@ class _HintText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Text(
       text,
-      style: const TextStyle(
-        color: AppColors.onSurfaceVariant,
+      style: TextStyle(
+        color: colorScheme.onSurfaceVariant,
         fontSize: 13,
         height: 1.4,
       ),
@@ -677,6 +672,7 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadii.surface),
@@ -684,7 +680,7 @@ class _ActionTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.secondary, size: 22),
+            Icon(icon, color: colorScheme.secondary, size: 22),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -692,8 +688,8 @@ class _ActionTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: AppColors.onBackground,
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -701,8 +697,8 @@ class _ActionTile extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: AppColors.onSurfaceVariant,
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
                       fontSize: 13,
                     ),
                   ),

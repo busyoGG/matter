@@ -588,16 +588,15 @@ class _AttachmentPickerState extends State<AttachmentPicker> {
     required double maxHeight,
     required double minSize,
   }) {
+    final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
       child: Material(
-        color: AppColors.surface,
+        color: colors.surface,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadii.surface),
-          side: BorderSide(
-            color: AppColors.surfaceVariant.withValues(alpha: 0.65),
-          ),
+          side: BorderSide(color: colors.outlineVariant),
         ),
         child: Column(
           children: [
@@ -625,7 +624,7 @@ class _AttachmentPickerState extends State<AttachmentPicker> {
                 ),
               ),
             ),
-            const Divider(height: 1, color: AppColors.surfaceVariant),
+            Divider(height: 1, color: colors.outlineVariant),
             Expanded(
               child: Stack(
                 children: [
@@ -767,6 +766,7 @@ class _FrostedTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final items = const [
       _TabItem(AttachmentTab.media, Icons.photo_library_rounded, '图片'),
       _TabItem(AttachmentTab.file, Icons.folder_rounded, '文件'),
@@ -785,9 +785,9 @@ class _FrostedTabBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.surfaceElevated.withValues(alpha: 0.94),
+                color: colors.surfaceContainerHigh.withValues(alpha: 0.94),
                 borderRadius: BorderRadius.circular(AppRadii.nav),
-                border: Border.all(color: AppColors.glassBorder, width: 0.8),
+                border: Border.all(color: colors.outlineVariant, width: 0.8),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -833,7 +833,8 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.onSurfaceVariant;
+    final colors = Theme.of(context).colorScheme;
+    final color = selected ? AppColors.primary : colors.onSurfaceVariant;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -1018,10 +1019,9 @@ class _MediaTabBodyState extends State<_MediaTabBody> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
+      return Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
     if (_error != null) {
       return Center(
@@ -1029,7 +1029,7 @@ class _MediaTabBodyState extends State<_MediaTabBody> {
           padding: const EdgeInsets.all(24),
           child: Text(
             _error!,
-            style: const TextStyle(color: AppColors.onSurfaceVariant),
+            style: TextStyle(color: colors.onSurfaceVariant),
           ),
         ),
       );
@@ -1040,10 +1040,10 @@ class _MediaTabBodyState extends State<_MediaTabBody> {
           child: NotificationListener<ScrollNotification>(
             onNotification: _onScroll,
             child: _assets.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       '没有可用的图片或视频',
-                      style: TextStyle(color: AppColors.onSurfaceVariant),
+                      style: TextStyle(color: colors.onSurfaceVariant),
                     ),
                   )
                 : GridView.builder(
@@ -1065,14 +1065,14 @@ class _MediaTabBodyState extends State<_MediaTabBody> {
                     itemCount: _assets.length + (_fetchingMore ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index >= _assets.length) {
-                        return const Center(
+                        return Center(
                           child: Padding(
-                            padding: EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(16),
                             child: SizedBox.square(
                               dimension: 18,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: AppColors.onSurfaceVariant,
+                                color: colors.onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -1369,6 +1369,7 @@ class _MediaFallbackState extends State<_MediaFallback> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Stack(
       children: [
         Positioned.fill(
@@ -1383,15 +1384,15 @@ class _MediaFallbackState extends State<_MediaFallback> {
                   : _attachmentSendBarClearance,
             ),
             children: [
-              const Icon(
+              Icon(
                 Icons.photo_library_outlined,
                 size: 48,
-                color: AppColors.onSurfaceVariant,
+                color: colors.onSurfaceVariant,
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 '此平台的相册网格不可用，请选择图片或视频',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(color: colors.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -1406,18 +1407,15 @@ class _MediaFallbackState extends State<_MediaFallback> {
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.insert_drive_file_rounded,
-                    color: AppColors.onSurfaceVariant,
+                    color: colors.onSurfaceVariant,
                   ),
                   title: Text(
                     _picked[index].name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.onSurface,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: colors.onSurface, fontSize: 13),
                   ),
                   trailing: IconButton(
                     tooltip: '移除',
@@ -1574,6 +1572,7 @@ class _PollTabBodyState extends State<_PollTabBody> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Stack(
       children: [
         Positioned.fill(
@@ -1589,7 +1588,7 @@ class _PollTabBodyState extends State<_PollTabBody> {
               TextField(
                 controller: _question,
                 enabled: !widget.isSending,
-                style: const TextStyle(color: AppColors.onBackground),
+                style: TextStyle(color: colors.onSurface),
                 decoration: const InputDecoration(labelText: '问题'),
                 onChanged: (_) => setState(() {}),
               ),
@@ -1600,15 +1599,12 @@ class _PollTabBodyState extends State<_PollTabBody> {
                     ? null
                     : _addAnswer,
                 icon: const Icon(Icons.add_rounded),
-                label: const Text(
-                  '添加选项',
-                  style: TextStyle(color: AppColors.primary),
-                ),
+                label: Text('添加选项', style: TextStyle(color: AppColors.primary)),
               ),
               SwitchListTile(
-                title: const Text(
+                title: Text(
                   '公开投票结果',
-                  style: TextStyle(color: AppColors.onBackground),
+                  style: TextStyle(color: colors.onSurface),
                 ),
                 value: _disclosed,
                 onChanged: widget.isSending
@@ -1617,10 +1613,7 @@ class _PollTabBodyState extends State<_PollTabBody> {
                 activeThumbColor: AppColors.primary,
               ),
               SwitchListTile(
-                title: const Text(
-                  '允许多选',
-                  style: TextStyle(color: AppColors.onBackground),
-                ),
+                title: Text('允许多选', style: TextStyle(color: colors.onSurface)),
                 value: _allowMultiple,
                 onChanged: widget.isSending
                     ? null
@@ -1685,6 +1678,7 @@ class _PollOptionInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Row(
       children: [
         Expanded(
@@ -1692,7 +1686,7 @@ class _PollOptionInput extends StatelessWidget {
             key: ValueKey('poll-option-input-$index'),
             controller: controller,
             enabled: enabled,
-            style: const TextStyle(color: AppColors.onBackground),
+            style: TextStyle(color: colors.onSurface),
             decoration: InputDecoration(hintText: '选项 ${index + 1}'),
             onChanged: onChanged,
           ),
@@ -1710,9 +1704,9 @@ class _PollOptionInput extends StatelessWidget {
                     dimension: 40,
                     child: IconButton(
                       tooltip: '删除选项',
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.remove_circle_outline_rounded,
-                        color: AppColors.onSurfaceVariant,
+                        color: colors.onSurfaceVariant,
                       ),
                       onPressed: enabled ? onRemove : null,
                       padding: EdgeInsets.zero,
@@ -1787,6 +1781,7 @@ class _LocationTabBodyState extends State<_LocationTabBody> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final selected = _selected;
     if (selected == null) {
       return Center(
@@ -1798,30 +1793,30 @@ class _LocationTabBodyState extends State<_LocationTabBody> {
             _attachmentDockClearance,
           ),
           child: _locating
-              ? const Column(
+              ? Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CircularProgressIndicator(color: AppColors.primary),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
                       '正在获取当前位置',
-                      style: TextStyle(color: AppColors.onSurfaceVariant),
+                      style: TextStyle(color: colors.onSurfaceVariant),
                     ),
                   ],
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.location_off_rounded,
-                      color: AppColors.onSurfaceVariant,
+                      color: colors.onSurfaceVariant,
                       size: 36,
                     ),
                     const SizedBox(height: 10),
                     Text(
                       _error ?? '无法获取当前位置',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.onSurfaceVariant),
+                      style: TextStyle(color: colors.onSurfaceVariant),
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(

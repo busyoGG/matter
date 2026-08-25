@@ -90,11 +90,12 @@ class _AppAvatarState extends ConsumerState<AppAvatar> {
     final activeUserId = ref.watch(activeUserIdProvider);
     final userId = currentUser?.id ?? activeUserId;
     final homeserver = currentUser?.homeserver;
+    final surfaceElevated = Theme.of(context).colorScheme.surfaceContainerHigh;
     return Container(
       width: widget.size,
       height: widget.size,
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: surfaceElevated,
         borderRadius: BorderRadius.circular(widget.radius),
       ),
       clipBehavior: Clip.antiAlias,
@@ -114,18 +115,19 @@ class _AppAvatarState extends ConsumerState<AppAvatar> {
   }
 
   Widget _buildFallback() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: widget.size,
       height: widget.size,
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(widget.radius),
       ),
       child: Center(
         child: Text(
           _initials,
           style: TextStyle(
-            color: AppColors.primary,
+            color: colorScheme.primary,
             fontSize: widget.size * 0.38,
             fontWeight: FontWeight.w700,
           ),
@@ -259,10 +261,10 @@ class AuthenticatedImageMessage extends ConsumerWidget {
     // mxc:// URLs can't be shown directly
     if (imageUrl.startsWith('mxc://')) {
       WidgetsBinding.instance.addPostFrameCallback((_) => onError?.call());
-      return const Center(
+      return Center(
         child: Icon(
           Icons.broken_image_rounded,
-          color: AppColors.onSurfaceVariant,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           size: 40,
         ),
       );
@@ -273,10 +275,10 @@ class AuthenticatedImageMessage extends ConsumerWidget {
     final activeUserId = ref.watch(activeUserIdProvider);
     final userId = currentUser?.id ?? activeUserId;
     final homeserver = currentUser?.homeserver;
-    final brokenIcon = const Center(
+    final brokenIcon = Center(
       child: Icon(
         Icons.broken_image_rounded,
-        color: AppColors.onSurfaceVariant,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
         size: 40,
       ),
     );

@@ -59,17 +59,21 @@ android {
 
     buildTypes {
         release {
-            if (!keystorePropertiesFile.exists()) {
-                throw GradleException(
-                    "Release signing requires android/key.properties; refusing to use the debug key.",
-                )
+            if (gradle.startParameter.taskNames.any {
+                    it.contains("Release", ignoreCase = true)
+                }) {
+                if (!keystorePropertiesFile.exists()) {
+                    throw GradleException(
+                        "Release signing requires android/key.properties; refusing to use the debug key.",
+                    )
+                }
+                if (missingReleaseSigningProperties.isNotEmpty()) {
+                    throw GradleException(
+                        "Missing release signing properties: ${missingReleaseSigningProperties.joinToString()}",
+                    )
+                }
+                signingConfig = signingConfigs.getByName("release")
             }
-            if (missingReleaseSigningProperties.isNotEmpty()) {
-                throw GradleException(
-                    "Missing release signing properties: ${missingReleaseSigningProperties.joinToString()}",
-                )
-            }
-            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

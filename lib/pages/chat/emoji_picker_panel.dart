@@ -59,6 +59,7 @@ class _EmojiPickerPanelState extends State<EmojiPickerPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final emojis = _currentEmojis;
     return Column(
       children: [
@@ -72,24 +73,21 @@ class _EmojiPickerPanelState extends State<EmojiPickerPanel> {
                   child: TextField(
                     controller: _searchController,
                     autofocus: true,
-                    style: const TextStyle(
-                      color: AppColors.onSurface,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: colors.onSurface, fontSize: 14),
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: '搜索表情，如 笑 / heart',
-                      hintStyle: const TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                      hintStyle: TextStyle(
+                        color: colors.onSurfaceVariant,
                         fontSize: 14,
                       ),
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         Icons.search_rounded,
-                        color: AppColors.onSurfaceVariant,
+                        color: colors.onSurfaceVariant,
                         size: 18,
                       ),
                       filled: true,
-                      fillColor: AppColors.surfaceVariant,
+                      fillColor: colors.surfaceContainerHighest,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadii.tag),
                         borderSide: BorderSide.none,
@@ -100,9 +98,9 @@ class _EmojiPickerPanelState extends State<EmojiPickerPanel> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.close_rounded,
-                    color: AppColors.onSurfaceVariant,
+                    color: colors.onSurfaceVariant,
                     size: 20,
                   ),
                   onPressed: () {
@@ -145,12 +143,9 @@ class _EmojiPickerPanelState extends State<EmojiPickerPanel> {
         if (_query.isEmpty)
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: colors.surface,
               border: Border(
-                top: BorderSide(
-                  color: AppColors.surfaceVariant.withValues(alpha: 0.5),
-                  width: 0.5,
-                ),
+                top: BorderSide(color: colors.outlineVariant, width: 0.5),
               ),
             ),
             child: Row(
@@ -170,7 +165,7 @@ class _EmojiPickerPanelState extends State<EmojiPickerPanel> {
                               fontSize: 20,
                               color: selected
                                   ? AppColors.primary
-                                  : AppColors.onSurfaceVariant,
+                                  : colors.onSurfaceVariant,
                             ),
                           ),
                           tooltip: cat.label,
@@ -187,7 +182,7 @@ class _EmojiPickerPanelState extends State<EmojiPickerPanel> {
                 IconButton(
                   icon: Icon(
                     _showSearch ? Icons.close_rounded : Icons.search_rounded,
-                    color: AppColors.onSurfaceVariant,
+                    color: colors.onSurfaceVariant,
                     size: 20,
                   ),
                   onPressed: () {

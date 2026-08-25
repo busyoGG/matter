@@ -20,12 +20,13 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final contactsAsync = ref.watch(contactsProvider);
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          const SliverAppBar(
+          SliverAppBar(
             floating: true,
             pinned: true,
             title: Text(
@@ -33,11 +34,11 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: AppColors.onBackground,
+                color: colors.onSurface,
                 letterSpacing: -0.5,
               ),
             ),
-            backgroundColor: AppColors.background,
+            backgroundColor: colors.surface,
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -45,28 +46,25 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
               child: Container(
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
+                  color: colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppRadii.surface),
                 ),
                 child: Row(
                   children: [
                     const SizedBox(width: 12),
-                    const Icon(
+                    Icon(
                       Icons.search_rounded,
-                      color: AppColors.onSurfaceVariant,
+                      color: colors.onSurfaceVariant,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
-                        style: const TextStyle(
-                          color: AppColors.onBackground,
-                          fontSize: 15,
-                        ),
-                        decoration: const InputDecoration(
+                        style: TextStyle(color: colors.onSurface, fontSize: 15),
+                        decoration: InputDecoration(
                           hintText: '搜索联系人',
                           hintStyle: TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                            color: colors.onSurfaceVariant,
                             fontSize: 15,
                           ),
                           border: InputBorder.none,
@@ -97,30 +95,30 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
                         .toList();
 
               if (filtered.isEmpty) {
-                return const SliverToBoxAdapter(
+                return SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(32),
                     child: Center(
                       child: Column(
                         children: [
                           Icon(
                             Icons.contacts_rounded,
-                            color: AppColors.onSurfaceVariant,
+                            color: colors.onSurfaceVariant,
                             size: 48,
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Text(
                             '暂无联系人',
                             style: TextStyle(
-                              color: AppColors.onSurfaceVariant,
+                              color: colors.onSurfaceVariant,
                               fontSize: 15,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
                             '加入房间后，成员会显示在这里',
                             style: TextStyle(
-                              color: AppColors.onSurfaceVariant,
+                              color: colors.onSurfaceVariant,
                               fontSize: 13,
                             ),
                           ),
@@ -133,8 +131,8 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
 
               return SliverList.separated(
                 itemCount: filtered.length,
-                separatorBuilder: (context, index) => const Divider(
-                  color: AppColors.surfaceVariant,
+                separatorBuilder: (context, index) => Divider(
+                  color: colors.outlineVariant,
                   thickness: 0.5,
                   indent: 82,
                   height: 1,
@@ -162,7 +160,7 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
                 child: Center(
                   child: SelectableText(
                     '加载失败: $err',
-                    style: const TextStyle(color: AppColors.onSurfaceVariant),
+                    style: TextStyle(color: colors.onSurfaceVariant),
                   ),
                 ),
               ),
@@ -206,6 +204,7 @@ class _ContactTileState extends ConsumerState<_ContactTile> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final contact = widget.contact;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -224,8 +223,8 @@ class _ContactTileState extends ConsumerState<_ContactTile> {
               children: [
                 Text(
                   contact.name,
-                  style: const TextStyle(
-                    color: AppColors.onBackground,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 15.5,
                     fontWeight: FontWeight.w600,
                   ),
@@ -233,8 +232,8 @@ class _ContactTileState extends ConsumerState<_ContactTile> {
                 const SizedBox(height: 2),
                 Text(
                   contact.status,
-                  style: const TextStyle(
-                    color: AppColors.onSurfaceVariant,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
@@ -242,9 +241,9 @@ class _ContactTileState extends ConsumerState<_ContactTile> {
             ),
           ),
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.message_rounded,
-              color: AppColors.onSurfaceVariant,
+              color: colors.onSurfaceVariant,
               size: 20,
             ),
             onPressed: _creatingDm

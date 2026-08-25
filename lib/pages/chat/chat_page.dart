@@ -38,6 +38,7 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final AsyncValue<List<ChatRoom>> roomsAsync;
     if (widget.spaceId case final spaceId?) {
       roomsAsync = ref.watch(spaceChildrenProvider(spaceId));
@@ -76,17 +77,17 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
                 title: CascadeTitle(
                   text: titleText,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.onBackground,
+                    color: colors.onSurface,
                     letterSpacing: -0.5,
                   ),
                 ),
               ),
               backgroundColor: widget.embedded
-                  ? AppColors.background
-                  : AppColors.background.withValues(alpha: 0.85),
+                  ? colors.surface
+                  : colors.surface.withValues(alpha: 0.85),
             ),
             const SliverToBoxAdapter(child: ChatSearchBar()),
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
@@ -112,8 +113,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       child: Center(
                         child: Text(
                           widget.emptyLabel ?? '暂无聊天',
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
                             fontSize: 14,
                           ),
                         ),
@@ -125,8 +126,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   itemCount: rooms.length,
                   separatorBuilder: (context, index) => widget.embedded
                       ? const SizedBox(height: 2)
-                      : const Divider(
-                          color: Color(0xFF1E242C),
+                      : Divider(
+                          color: colors.outlineVariant,
                           thickness: 0.5,
                           height: 0.5,
                         ),
@@ -157,7 +158,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   child: Center(
                     child: SelectableText(
                       '加载失败: $err',
-                      style: const TextStyle(color: AppColors.onSurfaceVariant),
+                      style: TextStyle(color: colors.onSurfaceVariant),
                     ),
                   ),
                 ),
@@ -194,7 +195,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
 
     if (widget.embedded) {
-      return ColoredBox(color: AppColors.background, child: content);
+      return ColoredBox(color: colors.surface, child: content);
     }
     return Scaffold(body: content);
   }

@@ -8,13 +8,12 @@ class DateSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Row(
         children: [
-          Expanded(
-            child: Container(height: 0.5, color: AppColors.surfaceVariant),
-          ),
+          Expanded(child: Container(height: 0.5, color: colors.outlineVariant)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
@@ -26,9 +25,7 @@ class DateSeparator extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Container(height: 0.5, color: AppColors.surfaceVariant),
-          ),
+          Expanded(child: Container(height: 0.5, color: colors.outlineVariant)),
         ],
       ),
     );

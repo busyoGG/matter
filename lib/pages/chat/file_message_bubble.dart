@@ -164,6 +164,7 @@ class _FileMessageBubbleState extends State<FileMessageBubble> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final caption = widget.caption?.trim();
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: widget.maxWidth),
@@ -174,7 +175,7 @@ class _FileMessageBubbleState extends State<FileMessageBubble> {
             Material(
               color: widget.isMe
                   ? AppColors.primary.withValues(alpha: 0.22)
-                  : AppColors.surfaceVariant,
+                  : colors.surfaceContainerLow,
               child: InkWell(
                 onTap: _downloading ? null : _download,
                 child: Padding(
@@ -191,7 +192,9 @@ class _FileMessageBubbleState extends State<FileMessageBubble> {
                                 ? Icons.downloading_rounded
                                 : Icons.insert_drive_file_rounded,
                             size: 30,
-                            color: AppColors.onBackground,
+                            color: widget.isMe
+                                ? colors.onPrimary
+                                : colors.onSurface,
                           ),
                           const SizedBox(width: 10),
                           Flexible(
@@ -199,8 +202,10 @@ class _FileMessageBubbleState extends State<FileMessageBubble> {
                               _safeFilename,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.onBackground,
+                              style: TextStyle(
+                                color: widget.isMe
+                                    ? colors.onPrimary
+                                    : colors.onSurface,
                                 fontSize: 14,
                               ),
                             ),
@@ -209,7 +214,9 @@ class _FileMessageBubbleState extends State<FileMessageBubble> {
                           Icon(
                             Icons.download_rounded,
                             size: 18,
-                            color: AppColors.onSurfaceVariant,
+                            color: widget.isMe
+                                ? colors.onPrimary
+                                : colors.onSurfaceVariant,
                           ),
                         ],
                       ),
@@ -217,8 +224,10 @@ class _FileMessageBubbleState extends State<FileMessageBubble> {
                         const SizedBox(height: 8),
                         Text(
                           caption,
-                          style: const TextStyle(
-                            color: AppColors.onBackground,
+                          style: TextStyle(
+                            color: widget.isMe
+                                ? colors.onPrimary
+                                : colors.onSurface,
                             fontSize: 14,
                           ),
                         ),

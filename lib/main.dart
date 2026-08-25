@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'features/app_update/app_update_service.dart';
 import 'features/app_update/update_dialog.dart';
@@ -14,6 +15,7 @@ import 'pages/chat/chat_detail_page.dart';
 import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/mutable_state.dart';
+import 'providers/theme_provider.dart';
 import 'src/rust/api/matrix.dart' as rust;
 import 'src/rust/frb_generated.dart';
 import 'theme/app_theme.dart';
@@ -58,14 +60,23 @@ Future<void> main() async {
     _logDartError('startup', 'Bootstrap check failed: $e');
   }
   final credentialStoreFailure = startupSessionCredentialStoreFailure;
+  SharedPreferences? themePreferences;
+  var initialThemeMode = ThemeMode.system;
+  try {
+    themePreferences = await SharedPreferences.getInstance();
+    initialThemeMode = themeModeFromStorage(
+      themePreferences.getString(themeModePreferenceKey),
+    );
+  } catch (error) {
+    _logDartError('startup', 'Theme preference load failed: $error');
+  }
 
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: AppColors.background,
-      systemNavigationBarIconBrightness: Brightness.light,
-      systemNavigationBarDividerColor: Colors.transparent,
+    _systemUiOverlayStyle(
+      _resolvedBrightness(
+        initialThemeMode,
+        ui.PlatformDispatcher.instance.platformBrightness,
+      ),
     ),
   );
 
@@ -83,6 +94,12 @@ Future<void> main() async {
           sessionCredentialStoreFailureProvider.overrideWith(
             () => MutableState(credentialStoreFailure),
           ),
+        themeModeProvider.overrideWith(
+          () => ThemeModeNotifier(
+            preferences: themePreferences,
+            initialMode: initialThemeMode,
+          ),
+        ),
       ],
       child: _AppRoot(hasSessions: hasSessions),
     ),
@@ -123,8 +140,10 @@ class _AppRoot extends ConsumerStatefulWidget {
   ConsumerState<_AppRoot> createState() => _AppRootState();
 }
 
-class _AppRootState extends ConsumerState<_AppRoot> {
+class _AppRootState extends ConsumerState<_AppRoot>
+    with WidgetsBindingObserver {
   final _navigatorKey = GlobalKey<NavigatorState>();
+  Brightness? _lastSystemBrightness;
   bool _credentialCompatibilityDialogShown = false;
 
   /// True only while the startup session-restore is in flight. Keeps the main
@@ -135,11 +154,26 @@ class _AppRootState extends ConsumerState<_AppRoot> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.hasSessions) {
       _restoring = true;
       _restoreSessionsInBackground();
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => _runStartupPrompts());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    if (ref.read(themeModeProvider) == ThemeMode.system && mounted) {
+      final brightness = ui.PlatformDispatcher.instance.platformBrightness;
+      SystemChrome.setSystemUIOverlayStyle(_systemUiOverlayStyle(brightness));
+    }
   }
 
   Future<void> _runStartupPrompts() async {
@@ -303,16 +337,58 @@ class _AppRootState extends ConsumerState<_AppRoot> {
     ref.watch(sessionTokenPersistenceProvider);
     final isLoggedIn = ref.watch(isLoggedInProvider);
     final showMainApp = isLoggedIn || _restoring;
+    final themeMode = ref.watch(themeModeProvider);
+    final platformBrightness =
+        ui.PlatformDispatcher.instance.platformBrightness;
+    final resolvedBrightness = _resolvedBrightness(
+      themeMode,
+      platformBrightness,
+    );
+    if (_lastSystemBrightness != resolvedBrightness) {
+      _lastSystemBrightness = resolvedBrightness;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          SystemChrome.setSystemUIOverlayStyle(
+            _systemUiOverlayStyle(resolvedBrightness),
+          );
+        }
+      });
+    }
 
     return MaterialApp(
       navigatorKey: _navigatorKey,
       navigatorObservers: [chatRouteObserver],
       title: 'Matter',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
+      themeMode: themeMode,
+      themeAnimationDuration: Duration.zero,
       home: showMainApp ? const MatterApp() : const LoginPage(),
     );
   }
+}
+
+Brightness _resolvedBrightness(ThemeMode mode, Brightness platformBrightness) {
+  return switch (mode) {
+    ThemeMode.light => Brightness.light,
+    ThemeMode.dark => Brightness.dark,
+    ThemeMode.system => platformBrightness,
+  };
+}
+
+SystemUiOverlayStyle _systemUiOverlayStyle(Brightness brightness) {
+  final isLight = brightness == Brightness.light;
+  return SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
+    statusBarBrightness: isLight ? Brightness.light : Brightness.dark,
+    systemNavigationBarColor: isLight
+        ? AppColors.lightBackground
+        : AppColors.background,
+    systemNavigationBarIconBrightness: isLight
+        ? Brightness.dark
+        : Brightness.light,
+    systemNavigationBarDividerColor: Colors.transparent,
+  );
 }

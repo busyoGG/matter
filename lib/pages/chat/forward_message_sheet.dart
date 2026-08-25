@@ -75,12 +75,13 @@ class ForwardSuccessNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 360),
         child: Material(
           key: const ValueKey('forward-success-notice-surface'),
-          color: AppColors.surfaceElevated,
+          color: colors.surfaceContainerHigh,
           elevation: 8,
           shadowColor: Colors.black54,
           borderRadius: BorderRadius.circular(AppRadii.button),
@@ -91,10 +92,10 @@ class ForwardSuccessNotice extends StatelessWidget {
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                const Text(
+                Text(
                   '成功转发到',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.onBackground),
+                  style: TextStyle(color: colors.onSurface),
                 ),
                 Semantics(
                   link: true,
@@ -126,12 +127,14 @@ class ForwardSuccessNoticeOverlay extends StatelessWidget {
   final double bottomInset;
   final String roomName;
   final VoidCallback onRoomTap;
+  final bool animatePosition;
 
   const ForwardSuccessNoticeOverlay({
     super.key,
     required this.bottomInset,
     required this.roomName,
     required this.onRoomTap,
+    this.animatePosition = true,
   });
 
   @override
@@ -140,7 +143,9 @@ class ForwardSuccessNoticeOverlay extends StatelessWidget {
       left: 16,
       right: 16,
       bottom: bottomInset + 12,
-      duration: const Duration(milliseconds: 180),
+      duration: animatePosition
+          ? const Duration(milliseconds: 180)
+          : Duration.zero,
       curve: Curves.easeOutCubic,
       child: ForwardSuccessNotice(roomName: roomName, onRoomTap: onRoomTap),
     );
@@ -206,11 +211,12 @@ class _ForwardMessageSheetState extends ConsumerState<ForwardMessageSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final rooms = ref.watch(chatRoomsProvider);
     return FractionallySizedBox(
       heightFactor: 0.72,
       child: Material(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppRadii.surface),
         ),
@@ -224,7 +230,7 @@ class _ForwardMessageSheetState extends ConsumerState<ForwardMessageSheet> {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
+                  color: colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -232,11 +238,11 @@ class _ForwardMessageSheetState extends ConsumerState<ForwardMessageSheet> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         '转发到',
                         style: TextStyle(
-                          color: AppColors.onBackground,
+                          color: colors.onSurface,
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),
@@ -275,7 +281,7 @@ class _ForwardMessageSheetState extends ConsumerState<ForwardMessageSheet> {
                   ),
                 ),
               ),
-              const Divider(height: 0.5, color: AppColors.surfaceVariant),
+              Divider(height: 0.5, color: colors.outlineVariant),
               Expanded(
                 child: rooms.when(
                   loading: () => const Center(
@@ -345,18 +351,19 @@ class _ForwardRoomsMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: AppColors.onSurfaceVariant, size: 30),
+            Icon(icon, color: colors.onSurfaceVariant, size: 30),
             const SizedBox(height: 10),
             Text(
               text,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.onSurfaceVariant),
+              style: TextStyle(color: colors.onSurfaceVariant),
             ),
           ],
         ),

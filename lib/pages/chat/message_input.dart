@@ -1692,6 +1692,10 @@ class MessageInputState extends ConsumerState<MessageInput> {
             widget.panelMode == InputPanelMode.attachment
         ? widget.panelMode
         : _lastPickerPanelMode;
+    final theme = Theme.of(context);
+    final gradientColor = theme.brightness == Brightness.light
+        ? theme.colorScheme.surface
+        : theme.scaffoldBackgroundColor;
 
     final input = SafeArea(
       top: false,
@@ -1755,7 +1759,8 @@ class MessageInputState extends ConsumerState<MessageInput> {
                         maxHeight: 120,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceVariant.withValues(alpha: 0.58),
+                        color: theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.58),
                         borderRadius: BorderRadius.circular(AppRadii.surface),
                         border: Border.all(color: AppColors.glassBorder),
                       ),
@@ -1763,14 +1768,14 @@ class MessageInputState extends ConsumerState<MessageInput> {
                         controller: _controller,
                         focusNode: _focusNode,
                         readOnly: editingSourceLoading,
-                        style: const TextStyle(
-                          color: AppColors.onBackground,
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface,
                           fontSize: 15,
                         ),
                         decoration: InputDecoration(
                           hintText: '消息',
-                          hintStyle: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                          hintStyle: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
                             fontSize: 15,
                           ),
                           contentPadding: const EdgeInsets.symmetric(
@@ -1969,8 +1974,8 @@ class MessageInputState extends ConsumerState<MessageInput> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            AppColors.background.withValues(alpha: 0.52),
-                            AppColors.background.withValues(alpha: 0.88),
+                            gradientColor.withValues(alpha: 0.52),
+                            gradientColor.withValues(alpha: 0.88),
                           ],
                           stops: [0, fadeStop, 1],
                         ),

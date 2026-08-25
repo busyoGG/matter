@@ -122,11 +122,11 @@ class _EncryptionPageState extends State<EncryptionPage> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                   children: [
-                    _buildOverview(),
+                    _buildOverview(context),
                     const SizedBox(height: 16),
-                    _buildDevices(),
+                    _buildDevices(context),
                     const SizedBox(height: 16),
-                    _buildRecovery(),
+                    _buildRecovery(context),
                   ],
                 ),
               ),
@@ -134,7 +134,8 @@ class _EncryptionPageState extends State<EncryptionPage> {
     );
   }
 
-  Widget _buildOverview() {
+  Widget _buildOverview(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final verified = _recoveryInfo?.deviceVerified ?? false;
     return AppCard(
       child: Row(
@@ -159,8 +160,8 @@ class _EncryptionPageState extends State<EncryptionPage> {
               children: [
                 Text(
                   verified ? '当前设备已验证' : '当前设备尚未验证',
-                  style: const TextStyle(
-                    color: AppColors.onBackground,
+                  style: TextStyle(
+                    color: colors.onSurface,
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                   ),
@@ -168,7 +169,7 @@ class _EncryptionPageState extends State<EncryptionPage> {
                 const SizedBox(height: 4),
                 Text(
                   _recoveryLabel(_recoveryInfo?.state),
-                  style: const TextStyle(color: AppColors.onSurfaceVariant),
+                  style: TextStyle(color: colors.onSurfaceVariant),
                 ),
               ],
             ),
@@ -178,7 +179,7 @@ class _EncryptionPageState extends State<EncryptionPage> {
     );
   }
 
-  Widget _buildDevices() {
+  Widget _buildDevices(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -188,16 +189,22 @@ class _EncryptionPageState extends State<EncryptionPage> {
           child: Column(
             children: [
               for (var index = 0; index < _devices.length; index++) ...[
-                _buildDevice(_devices[index]),
+                _buildDevice(context, _devices[index]),
                 if (index != _devices.length - 1)
-                  const Divider(height: 1, indent: 64),
+                  Divider(
+                    height: 1,
+                    indent: 64,
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
               ],
               if (_devices.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(20),
+                Padding(
+                  padding: const EdgeInsets.all(20),
                   child: Text(
                     '暂时没有读取到设备，请先完成一次同步',
-                    style: TextStyle(color: AppColors.onSurfaceVariant),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
             ],
@@ -207,7 +214,7 @@ class _EncryptionPageState extends State<EncryptionPage> {
     );
   }
 
-  Widget _buildDevice(rust.VerificationDevice device) {
+  Widget _buildDevice(BuildContext context, rust.VerificationDevice device) {
     return ListTile(
       leading: Icon(
         device.isCurrent ? Icons.phone_android_rounded : Icons.devices_rounded,
@@ -215,13 +222,13 @@ class _EncryptionPageState extends State<EncryptionPage> {
       ),
       title: Text(
         device.displayName,
-        style: const TextStyle(color: AppColors.onBackground),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       ),
       subtitle: Text(
         '${device.deviceId}${device.isCurrent ? ' · 当前设备' : ''}',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: AppColors.onSurfaceVariant),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       trailing: device.isCurrent || device.isVerified
           ? Icon(
@@ -269,7 +276,7 @@ class _EncryptionPageState extends State<EncryptionPage> {
     if (mounted) await _refreshDevicesAndRecovery();
   }
 
-  Widget _buildRecovery() {
+  Widget _buildRecovery(BuildContext context) {
     final enabled = _recoveryInfo?.state == 'enabled';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,19 +286,19 @@ class _EncryptionPageState extends State<EncryptionPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 '恢复历史加密消息',
                 style: TextStyle(
-                  color: AppColors.onBackground,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 '输入 Matrix 恢复密钥或设置恢复时使用的口令。内容只会交给本机加密存储处理。',
                 style: TextStyle(
-                  color: AppColors.onSurfaceVariant,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.45,
                 ),
               ),
@@ -319,18 +326,21 @@ class _EncryptionPageState extends State<EncryptionPage> {
               FilledButton(
                 onPressed: _busy
                     ? null
-                    : () => _run(() async {
-                        await rust.recoverEncryption(
-                          recoveryKeyOrPassphrase: _recoveryController.text,
-                        );
-                        _recoveryController.clear();
-                        await _refreshDevicesAndRecovery();
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('加密数据恢复完成')),
+                    : () {
+                        final messenger = ScaffoldMessenger.of(context);
+                        _run(() async {
+                          await rust.recoverEncryption(
+                            recoveryKeyOrPassphrase: _recoveryController.text,
                           );
-                        }
-                      }),
+                          _recoveryController.clear();
+                          await _refreshDevicesAndRecovery();
+                          if (mounted) {
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('加密数据恢复完成')),
+                            );
+                          }
+                        });
+                      },
                 child: const Text('恢复加密数据'),
               ),
               if (!enabled) ...[
@@ -400,8 +410,8 @@ class _EncryptionPageState extends State<EncryptionPage> {
               const SizedBox(height: 14),
               SelectableText(
                 key,
-                style: const TextStyle(
-                  color: AppColors.onBackground,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontFamily: 'monospace',
                 ),
               ),
@@ -572,7 +582,9 @@ class _VerificationDialogState extends State<_VerificationDialog> {
               Text(
                 _description,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               if (comparing) ...[
                 const SizedBox(height: 20),
@@ -588,7 +600,9 @@ class _VerificationDialogState extends State<_VerificationDialog> {
                   ),
                   itemBuilder: (context, index) => Container(
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceVariant,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(AppRadii.button),
                     ),
                     alignment: Alignment.center,
@@ -662,8 +676,8 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
       child: Text(
         text,
-        style: const TextStyle(
-          color: AppColors.onSurfaceVariant,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),

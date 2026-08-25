@@ -525,6 +525,7 @@ class _MatterAppState extends ConsumerState<MatterApp> {
   }
 
   Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints) {
+    final colors = Theme.of(context).colorScheme;
     final navigationIndex = ref.watch(navigationIndexProvider);
     final selectedRoom = _selectedRoom;
     // Match the room list's unread display (including the local override
@@ -560,13 +561,17 @@ class _MatterAppState extends ConsumerState<MatterApp> {
             onSpaceSelected: _showSpace,
             onNavigate: _onItemTapped,
           ),
-          const VerticalDivider(width: 1, thickness: 1),
+          VerticalDivider(width: 1, thickness: 1, color: colors.outlineVariant),
           Expanded(
             child: navigationIndex == 0
                 ? Row(
                     children: [
                       SizedBox(width: 320, child: _buildDesktopRoomList()),
-                      const VerticalDivider(width: 1, thickness: 1),
+                      VerticalDivider(
+                        width: 1,
+                        thickness: 1,
+                        color: colors.outlineVariant,
+                      ),
                       Expanded(
                         child: selectedRoom == null
                             ? const _DesktopEmptyChat()
@@ -599,7 +604,11 @@ class _MatterAppState extends ConsumerState<MatterApp> {
                               ),
                       ),
                       if (showRoomDetails) ...[
-                        const VerticalDivider(width: 1, thickness: 1),
+                        VerticalDivider(
+                          width: 1,
+                          thickness: 1,
+                          color: colors.outlineVariant,
+                        ),
                         SizedBox(
                           width: 300,
                           child: DesktopRoomDetailsPanel(
@@ -665,12 +674,13 @@ class _DesktopEmptyChat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: AppColors.background,
+    final colors = Theme.of(context).colorScheme;
+    return ColoredBox(
+      color: colors.surface,
       child: Center(
         child: Text(
           '选择一个聊天开始查看消息',
-          style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14),
+          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 14),
         ),
       ),
     );
@@ -682,12 +692,13 @@ class _DesktopEmptyRoomList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: AppColors.background,
+    final colors = Theme.of(context).colorScheme;
+    return ColoredBox(
+      color: colors.surface,
       child: Center(
         child: Text(
           '选择一个空间',
-          style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14),
+          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 14),
         ),
       ),
     );
@@ -715,13 +726,14 @@ class _DesktopSidebar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
     final spacesAsync = ref.watch(spacesProvider);
     final isRoomsPage = navigationIndex == 0;
 
     return SizedBox(
       width: 80,
       child: ColoredBox(
-        color: AppColors.surface,
+        color: colors.surface,
         child: Column(
           children: [
             const SizedBox(height: 12),
@@ -741,9 +753,14 @@ class _DesktopSidebar extends ConsumerWidget {
               onPressed: onUngroupedRoomsSelected,
               icon: const Icon(Icons.forum_outlined),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Divider(
+                color: colors.outlineVariant,
+                height: 1,
+                indent: 0,
+                endIndent: 0,
+              ),
             ),
             Expanded(
               child: spacesAsync.when(
@@ -778,9 +795,14 @@ class _DesktopSidebar extends ConsumerWidget {
                 error: (_, _) => const SizedBox.shrink(),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Divider(
+                color: colors.outlineVariant,
+                height: 1,
+                indent: 0,
+                endIndent: 0,
+              ),
             ),
             _DesktopRailButton(
               tooltip: '管理空间',
@@ -823,6 +845,7 @@ class _DesktopRailButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Tooltip(
       message: tooltip,
       child: SizedBox(
@@ -852,13 +875,13 @@ class _DesktopRailButton extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.surfaceVariant : null,
+                  color: selected ? colors.surfaceContainerHighest : null,
                   borderRadius: BorderRadius.circular(AppRadii.tag),
                 ),
                 child: IconButton(
                   onPressed: onPressed,
                   icon: icon,
-                  color: selected ? AppColors.primary : AppColors.onSurface,
+                  color: selected ? colors.primary : colors.onSurface,
                 ),
               ),
             ),
@@ -886,7 +909,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? AppColors.primary : AppColors.onSurfaceVariant;
+    final colors = Theme.of(context).colorScheme;
+    final color = isActive ? colors.primary : colors.onSurfaceVariant;
 
     return GestureDetector(
       onTap: onTap,

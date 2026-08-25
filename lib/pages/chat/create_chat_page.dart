@@ -148,25 +148,31 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.surface),
           ),
-          title: const Text(
+          title: Text(
             '加入房间',
-            style: TextStyle(color: AppColors.onBackground),
+            style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 onChanged: (value) => roomIdentifier = value,
-                style: const TextStyle(color: AppColors.onBackground),
-                decoration: const InputDecoration(
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
                   hintText: '!room_id:matrix.akass.cn',
-                  hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                  hintStyle: TextStyle(
+                    color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                  ),
                   enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.surfaceVariant),
+                    borderSide: BorderSide(
+                      color: Theme.of(ctx).colorScheme.outlineVariant,
+                    ),
                   ),
                 ),
               ),
@@ -175,10 +181,7 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
                     joinError!,
-                    style: const TextStyle(
-                      color: AppColors.error,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                 ),
             ],
@@ -186,9 +189,11 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
           actions: [
             TextButton(
               onPressed: joining ? null : () => Navigator.of(ctx).pop(),
-              child: const Text(
+              child: Text(
                 '取消',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
             TextButton(
@@ -288,10 +293,7 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text(
-                      '加入',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
+                  : Text('加入', style: TextStyle(color: AppColors.primary)),
             ),
           ],
         ),
@@ -302,22 +304,22 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_rounded,
-            color: AppColors.onBackground,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           '新建聊天',
           style: TextStyle(
-            color: AppColors.onBackground,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -333,28 +335,28 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
               // Search / user ID input
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppRadii.surface),
                 ),
                 child: TextField(
                   controller: _searchController,
-                  style: const TextStyle(
-                    color: AppColors.onBackground,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 15,
                   ),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: '输入 @用户 ID 发起私聊',
                     hintStyle: TextStyle(
-                      color: AppColors.onSurfaceVariant,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontSize: 15,
                     ),
                     prefixIcon: Icon(
                       Icons.search_rounded,
-                      color: AppColors.onSurfaceVariant,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       size: 20,
                     ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     isDense: true,
                   ),
                   textInputAction: TextInputAction.go,
@@ -390,7 +392,7 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text(
+                      : Text(
                           '发起私聊',
                           style: TextStyle(
                             fontSize: 15,
@@ -413,30 +415,36 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
                     context: context,
                     builder: (ctx) => StatefulBuilder(
                       builder: (ctx, setDialogState) => AlertDialog(
-                        backgroundColor: AppColors.surface,
+                        backgroundColor: Theme.of(ctx).colorScheme.surface,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadii.surface),
                         ),
-                        title: const Text(
+                        title: Text(
                           '创建群组',
-                          style: TextStyle(color: AppColors.onBackground),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             TextField(
                               onChanged: (value) => groupName = value,
-                              style: const TextStyle(
-                                color: AppColors.onBackground,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText: '群组名称',
                                 hintStyle: TextStyle(
-                                  color: AppColors.onSurfaceVariant,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
                                 ),
                                 enabledBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
-                                    color: AppColors.surfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outlineVariant,
                                   ),
                                 ),
                               ),
@@ -446,7 +454,7 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
                                 padding: const EdgeInsets.only(top: 12),
                                 child: Text(
                                   groupNameError!,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: AppColors.error,
                                     fontSize: 13,
                                   ),
@@ -457,10 +465,12 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.of(ctx).pop(),
-                            child: const Text(
+                            child: Text(
                               '取消',
                               style: TextStyle(
-                                color: AppColors.onSurfaceVariant,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -479,7 +489,7 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
                               Navigator.of(ctx).pop();
                               _createGroup(name);
                             },
-                            child: const Text(
+                            child: Text(
                               '创建',
                               style: TextStyle(color: AppColors.primary),
                             ),
@@ -531,7 +541,7 @@ class _ActionCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(AppRadii.surface),
           ),
           child: Row(
@@ -552,8 +562,8 @@ class _ActionCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: AppColors.onBackground,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -561,8 +571,8 @@ class _ActionCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 13,
                       ),
                     ),
@@ -571,7 +581,7 @@ class _ActionCard extends StatelessWidget {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 size: 20,
               ),
             ],

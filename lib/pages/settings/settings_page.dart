@@ -11,6 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/authenticated_media_cache.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/session_credential_store.dart';
+import '../../providers/theme_provider.dart';
 import '../../src/rust/api/matrix.dart' as rust;
 
 import '../../theme/app_theme.dart';
@@ -302,6 +303,43 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     unawaited(refreshCurrentUserProfile(ref));
   }
 
+  Future<void> _selectThemeMode() async {
+    final currentMode = ref.read(themeModeProvider);
+    final selectedMode = await showDialog<ThemeMode>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: const Text('主题'),
+        children: [
+          RadioGroup<ThemeMode>(
+            groupValue: currentMode,
+            onChanged: (value) => Navigator.pop(dialogContext, value),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: ThemeMode.values
+                  .map(
+                    (mode) => RadioListTile<ThemeMode>(
+                      value: mode,
+                      title: Text(themeModeLabel(mode)),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (selectedMode != null && selectedMode != currentMode) {
+      try {
+        await ref.read(themeModeProvider.notifier).setThemeMode(selectedMode);
+      } catch (error) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('保存主题设置失败：$error')));
+      }
+    }
+  }
+
   Future<void> _loadAppVersion() async {
     try {
       final version = await appUpdateService.getCurrentVersion();
@@ -436,28 +474,28 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     if (_clearingCache) return;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text(
-          '清理缓存',
-          style: TextStyle(color: AppColors.onBackground),
-        ),
-        content: const Text(
-          '将删除已下载的图片与媒体缓存，下次查看时会重新加载。确定继续吗？',
-          style: TextStyle(color: AppColors.onSurfaceVariant),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+      builder: (ctx) {
+        final colors = Theme.of(ctx).colorScheme;
+        return AlertDialog(
+          backgroundColor: colors.surface,
+          title: Text('清理缓存', style: TextStyle(color: colors.onSurface)),
+          content: Text(
+            '将删除已下载的图片与媒体缓存，下次查看时会重新加载。确定继续吗？',
+            style: TextStyle(color: colors.onSurfaceVariant),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('清理'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              child: const Text('清理'),
+            ),
+          ],
+        );
+      },
     );
     if (confirmed != true) return;
 
@@ -530,28 +568,31 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text(
-          isCurrentAccount ? '退出登录' : '移除账号',
-          style: const TextStyle(color: AppColors.onBackground),
-        ),
-        content: Text(
-          isCurrentAccount ? '确定要退出当前账号吗？' : '确定要移除这个账号吗？',
-          style: const TextStyle(color: AppColors.onSurfaceVariant),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
+      builder: (ctx) {
+        final colors = Theme.of(ctx).colorScheme;
+        return AlertDialog(
+          backgroundColor: colors.surface,
+          title: Text(
+            isCurrentAccount ? '退出登录' : '移除账号',
+            style: TextStyle(color: colors.onSurface),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('确定'),
+          content: Text(
+            isCurrentAccount ? '确定要退出当前账号吗？' : '确定要移除这个账号吗？',
+            style: TextStyle(color: colors.onSurfaceVariant),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              child: const Text('确定'),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed != true) return;
@@ -590,11 +631,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
     final activeUserId = ref.watch(activeUserIdProvider);
+    final themeMode = ref.watch(themeModeProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          const SliverAppBar(
+          SliverAppBar(
             floating: true,
             pinned: true,
             title: Text(
@@ -602,11 +645,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: AppColors.onBackground,
+                color: colorScheme.onSurface,
                 letterSpacing: -0.5,
               ),
             ),
-            backgroundColor: AppColors.background,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -642,8 +685,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             children: [
                               Text(
                                 currentUser?.displayName ?? '未登录',
-                                style: const TextStyle(
-                                  color: AppColors.onBackground,
+                                style: TextStyle(
+                                  color: colorScheme.onSurface,
                                   fontSize: 17,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -653,8 +696,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                 currentUser != null
                                     ? currentUser.id
                                     : '点击登录你的 Matrix 账号',
-                                style: const TextStyle(
-                                  color: AppColors.onSurfaceVariant,
+                                style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant,
                                   fontSize: 14,
                                 ),
                               ),
@@ -691,7 +734,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           icon: Icons.person_outline_rounded,
                           iconColor: isActive
                               ? AppColors.primary
-                              : AppColors.onSurfaceVariant,
+                              : colorScheme.onSurfaceVariant,
                           title: _formatUserId(account.userId),
                           subtitle: account.homeserverUrl.replaceAll(
                             RegExp(r'https?://'),
@@ -737,7 +780,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         icon: Icons.dark_mode_rounded,
                         iconColor: AppColors.secondary,
                         title: '主题',
-                        subtitle: '当前固定为深色',
+                        subtitle: themeModeLabel(themeMode),
+                        onTap: _selectThemeMode,
                       ),
                       _SettingItem(
                         icon: Icons.notifications_rounded,
@@ -840,7 +884,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     items: [
                       _SettingItem(
                         icon: Icons.info_rounded,
-                        iconColor: AppColors.onSurfaceVariant,
+                        iconColor: colorScheme.onSurfaceVariant,
                         title: '当前版本',
                         subtitle: _versionLabel,
                         onTap:
@@ -859,7 +903,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                       _SettingItem(
                         icon: Icons.code_rounded,
-                        iconColor: AppColors.onSurfaceVariant,
+                        iconColor: colorScheme.onSurfaceVariant,
                         title: '开源许可',
                         subtitle: '',
                         onTap: () {
@@ -906,7 +950,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           (account) => Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: AppCard(
-                              color: AppColors.onSurfaceVariant.withValues(
+                              color: colorScheme.onSurfaceVariant.withValues(
                                 alpha: 0.06,
                               ),
                               padding: const EdgeInsets.symmetric(
@@ -931,14 +975,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   else
                                     Icon(
                                       Icons.remove_circle_outline_rounded,
-                                      color: AppColors.onSurfaceVariant,
+                                      color: colorScheme.onSurfaceVariant,
                                       size: 18,
                                     ),
                                   const SizedBox(width: 8),
                                   Text(
                                     '移除 ${_formatUserId(account.userId)}',
                                     style: TextStyle(
-                                      color: AppColors.onSurfaceVariant,
+                                      color: colorScheme.onSurfaceVariant,
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -1032,8 +1076,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           padding: const EdgeInsets.only(left: 4, bottom: 10),
           child: Text(
             title,
-            style: const TextStyle(
-              color: AppColors.onSurfaceVariant,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
@@ -1090,7 +1134,7 @@ class _SettingItem extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      color: AppColors.onBackground,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 15,
                       fontWeight: onTap != null
                           ? FontWeight.w600
@@ -1100,8 +1144,8 @@ class _SettingItem extends StatelessWidget {
                   if (subtitle.isNotEmpty)
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 13,
                       ),
                     ),
@@ -1111,9 +1155,9 @@ class _SettingItem extends StatelessWidget {
             if (trailing != null)
               trailing!
             else if (onTap != null)
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 size: 20,
               ),
           ],

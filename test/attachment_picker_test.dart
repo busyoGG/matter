@@ -166,6 +166,9 @@ void main() {
     expect(find.text('图片 / 视频'), findsNothing);
     expect(find.byIcon(Icons.close_rounded), findsNothing);
 
+    final themeSurface = Theme.of(
+      tester.element(find.byType(AttachmentPicker)),
+    ).colorScheme.surface;
     final outerSurface = tester
         .widgetList<Material>(
           find.descendant(
@@ -175,7 +178,7 @@ void main() {
         )
         .singleWhere(
           (material) =>
-              material.color == AppColors.surface &&
+              material.color == themeSurface &&
               material.clipBehavior == Clip.antiAlias,
         );
     final shape = outerSurface.shape! as RoundedRectangleBorder;

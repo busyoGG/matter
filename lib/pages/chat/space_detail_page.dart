@@ -93,34 +93,32 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final space = widget.space;
     if (_accountSwitched || !_accountActive()) {
       return Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.background,
+          backgroundColor: colorScheme.surface,
           elevation: 0,
           scrolledUnderElevation: 0,
           leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: AppColors.onBackground,
-            ),
+            icon: Icon(Icons.arrow_back_rounded, color: colorScheme.onSurface),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: const Text(
+          title: Text(
             '空间',
             style: TextStyle(
-              color: AppColors.onBackground,
+              color: colorScheme.onSurface,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
-        body: const Center(
+        body: Center(
           child: Text(
             '账号已切换',
-            style: TextStyle(color: AppColors.onSurfaceVariant),
+            style: TextStyle(color: colorScheme.onSurfaceVariant),
           ),
         ),
       );
@@ -140,40 +138,34 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.onBackground,
-          ),
+          icon: Icon(Icons.arrow_back_rounded, color: colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           '空间',
           style: TextStyle(
-            color: AppColors.onBackground,
+            color: colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.playlist_add_rounded,
-              color: AppColors.onBackground,
+              color: colorScheme.onSurface,
             ),
             onPressed: () => _showAddRoomDialog(context, ref),
           ),
           PopupMenuButton<_SpaceMenuAction>(
-            color: AppColors.surface,
-            icon: const Icon(
-              Icons.more_horiz_rounded,
-              color: AppColors.onBackground,
-            ),
+            color: colorScheme.surface,
+            icon: Icon(Icons.more_horiz_rounded, color: colorScheme.onSurface),
             onSelected: (action) {
               switch (action) {
                 case _SpaceMenuAction.edit:
@@ -206,7 +198,7 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppColors.surfaceElevated,
+                color: colorScheme.surfaceContainerHigh,
                 borderRadius: BorderRadius.circular(AppRadii.surface),
               ),
               child: Column(
@@ -227,8 +219,8 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                           children: [
                             Text(
                               details.name,
-                              style: const TextStyle(
-                                color: AppColors.onBackground,
+                              style: TextStyle(
+                                color: colorScheme.onSurface,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -236,8 +228,8 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                             const SizedBox(height: 4),
                             Text(
                               details.id,
-                              style: const TextStyle(
-                                color: AppColors.onSurfaceVariant,
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
                                 fontSize: 12.5,
                               ),
                               maxLines: 1,
@@ -252,8 +244,8 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                     const SizedBox(height: 14),
                     Text(
                       details.topic!,
-                      style: const TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 13.5,
                         height: 1.35,
                       ),
@@ -268,10 +260,10 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
               child: childrenAsync.when(
                 data: (rooms) {
                   if (rooms.isEmpty) {
-                    return const Text(
+                    return Text(
                       '这个空间下暂时没有可见房间',
                       style: TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 13,
                       ),
                     );
@@ -288,16 +280,16 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                     ],
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                   child: CircularProgressIndicator(
-                    color: AppColors.primary,
+                    color: colorScheme.primary,
                     strokeWidth: 2,
                   ),
                 ),
                 error: (err, _) => Text(
                   '加载房间失败: $err',
-                  style: const TextStyle(
-                    color: AppColors.onSurfaceVariant,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
@@ -309,10 +301,10 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
               child: membersAsync.when(
                 data: (members) {
                   if (members.isEmpty) {
-                    return const Text(
+                    return Text(
                       '暂无成员信息',
                       style: TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 13,
                       ),
                     );
@@ -334,8 +326,8 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                               Expanded(
                                 child: Text(
                                   member.name,
-                                  style: const TextStyle(
-                                    color: AppColors.onBackground,
+                                  style: TextStyle(
+                                    color: colorScheme.onSurface,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -347,24 +339,24 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                       if (members.length > 8)
                         Text(
                           '还有 ${members.length - 8} 位成员',
-                          style: const TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 12.5,
                           ),
                         ),
                     ],
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                   child: CircularProgressIndicator(
-                    color: AppColors.primary,
+                    color: colorScheme.primary,
                     strokeWidth: 2,
                   ),
                 ),
                 error: (err, _) => Text(
                   '加载成员失败: $err',
-                  style: const TextStyle(
-                    color: AppColors.onSurfaceVariant,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
@@ -403,6 +395,7 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
     WidgetRef ref,
     SpaceDetails details,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     final nameController = TextEditingController(text: details.name);
     final topicController = TextEditingController(text: details.topic ?? '');
     String? editError;
@@ -411,23 +404,20 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: colorScheme.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.surface),
           ),
-          title: const Text(
-            '编辑空间',
-            style: TextStyle(color: AppColors.onBackground),
-          ),
+          title: Text('编辑空间', style: TextStyle(color: colorScheme.onSurface)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameController,
-                style: const TextStyle(color: AppColors.onBackground),
-                decoration: const InputDecoration(
+                style: TextStyle(color: colorScheme.onSurface),
+                decoration: InputDecoration(
                   hintText: '空间名称',
-                  hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                  hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),
               ),
               const SizedBox(height: 12),
@@ -435,10 +425,10 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                 controller: topicController,
                 minLines: 2,
                 maxLines: 4,
-                style: const TextStyle(color: AppColors.onBackground),
-                decoration: const InputDecoration(
+                style: TextStyle(color: colorScheme.onSurface),
+                decoration: InputDecoration(
                   hintText: '空间说明',
-                  hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                  hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),
               ),
               if (editError != null)
@@ -448,8 +438,8 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                     editError!,
                     style: TextStyle(
                       color: editError == _spaceBusyTip
-                          ? AppColors.onSurfaceVariant
-                          : AppColors.error,
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.error,
                       fontSize: 13,
                     ),
                   ),
@@ -459,9 +449,9 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text(
+              child: Text(
                 '取消',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ),
             TextButton(
@@ -569,18 +559,15 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                 }
               },
               child: saving
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
-                        color: AppColors.secondary,
+                        color: colorScheme.secondary,
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text(
-                      '保存',
-                      style: TextStyle(color: AppColors.secondary),
-                    ),
+                  : Text('保存', style: TextStyle(color: colorScheme.secondary)),
             ),
           ],
         ),
@@ -589,6 +576,7 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
   }
 
   void _showAddRoomDialog(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
     // The Consumer below shadows [context] with the sheet's own context,
     // which is unmounted as soon as the sheet route is dismissed. Keep the
     // page context here: the write may outlive an early dismissal (barrier
@@ -615,13 +603,13 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
           return Container(
             margin: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(AppRadii.surface),
             ),
             child: SafeArea(
               child: ungroupedAsync.when(
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(24),
+                loading: () => Padding(
+                  padding: const EdgeInsets.all(24),
                   child: Center(
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
@@ -631,25 +619,28 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         '加载可加入的房间失败',
-                        style: TextStyle(color: AppColors.error, fontSize: 13),
+                        style: TextStyle(
+                          color: colorScheme.error,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       OutlinedButton(
                         onPressed: () => ref.invalidate(ungroupedRoomsProvider),
-                        child: const Text('重试'),
+                        child: Text('重试'),
                       ),
                     ],
                   ),
                 ),
                 data: (rooms) => rooms.isEmpty
-                    ? const Padding(
+                    ? Padding(
                         padding: EdgeInsets.all(20),
                         child: Text(
                           '当前没有可加入这个空间的未归属群组。',
                           style: TextStyle(
-                            color: AppColors.onSurfaceVariant,
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 13,
                           ),
                         ),
@@ -661,9 +652,7 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                             ListTile(
                               title: Text(
                                 room.name,
-                                style: const TextStyle(
-                                  color: AppColors.onBackground,
-                                ),
+                                style: TextStyle(color: colorScheme.onSurface),
                               ),
                               subtitle: Text(
                                 room.lastMessage.isEmpty
@@ -671,14 +660,14 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                                     : room.lastMessage,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: AppColors.onSurfaceVariant,
+                                style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant,
                                   fontSize: 12.5,
                                 ),
                               ),
-                              trailing: const Icon(
+                              trailing: Icon(
                                 Icons.add_link_rounded,
-                                color: AppColors.secondary,
+                                color: colorScheme.secondary,
                               ),
                               onTap: _addingToSpaceRoomId == room.id
                                   ? null
@@ -803,25 +792,23 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
   }
 
   void _confirmRemoveRoom(BuildContext context, WidgetRef ref, ChatRoom room) {
+    final colorScheme = Theme.of(context).colorScheme;
     String? removeError;
     showDialog<void>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: colorScheme.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.surface),
           ),
-          title: const Text(
-            '移出空间',
-            style: TextStyle(color: AppColors.onBackground),
-          ),
+          title: Text('移出空间', style: TextStyle(color: colorScheme.onSurface)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 '要把“${room.name}”从这个空间移除吗？',
-                style: const TextStyle(color: AppColors.onBackground),
+                style: TextStyle(color: colorScheme.onSurface),
               ),
               if (removeError != null)
                 Padding(
@@ -830,8 +817,8 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                     removeError!,
                     style: TextStyle(
                       color: removeError == _spaceBusyTip
-                          ? AppColors.onSurfaceVariant
-                          : AppColors.error,
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.error,
                       fontSize: 13,
                     ),
                   ),
@@ -841,9 +828,9 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text(
+              child: Text(
                 '取消',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ),
             TextButton(
@@ -929,7 +916,7 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                   if (mounted) _spaceActionInProgress = false;
                 }
               },
-              child: const Text('移除', style: TextStyle(color: AppColors.error)),
+              child: Text('移除', style: TextStyle(color: colorScheme.error)),
             ),
           ],
         ),
@@ -942,25 +929,23 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
     WidgetRef ref,
     SpaceDetails details,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     String? leaveSpaceError;
     showDialog<void>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: colorScheme.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.surface),
           ),
-          title: const Text(
-            '退出空间',
-            style: TextStyle(color: AppColors.onBackground),
-          ),
+          title: Text('退出空间', style: TextStyle(color: colorScheme.onSurface)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 '确认退出“${details.name}”吗？',
-                style: const TextStyle(color: AppColors.onBackground),
+                style: TextStyle(color: colorScheme.onSurface),
               ),
               if (leaveSpaceError != null)
                 Padding(
@@ -969,8 +954,8 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                     leaveSpaceError!,
                     style: TextStyle(
                       color: leaveSpaceError == _spaceBusyTip
-                          ? AppColors.onSurfaceVariant
-                          : AppColors.error,
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.error,
                       fontSize: 13,
                     ),
                   ),
@@ -980,9 +965,9 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text(
+              child: Text(
                 '取消',
-                style: TextStyle(color: AppColors.onSurfaceVariant),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ),
             TextButton(
@@ -1071,7 +1056,7 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
                   if (mounted) _spaceActionInProgress = false;
                 }
               },
-              child: const Text('退出', style: TextStyle(color: AppColors.error)),
+              child: Text('退出', style: TextStyle(color: colorScheme.error)),
             ),
           ],
         ),
@@ -1090,10 +1075,11 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(AppRadii.surface),
       ),
       child: Column(
@@ -1101,8 +1087,8 @@ class _Section extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: AppColors.onBackground,
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -1123,6 +1109,7 @@ class _SpaceChildTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
     // Match the main room list's unread display (override-aware), so a
     // marked-unread room never reads as "在线" inside a space, and pending
     // mark-read/unread writes show consistently during the echo window.
@@ -1133,8 +1120,8 @@ class _SpaceChildTile extends ConsumerWidget {
         ? unreadOverride!.unread
         : syncedHasUnread;
     final unreadAccent = room.isMuted
-        ? AppColors.onSurfaceVariant
-        : AppColors.primary;
+        ? colorScheme.onSurfaceVariant
+        : colorScheme.primary;
     // Same stale-override cleanup as the main room list: a room managed only
     // from the space view must not keep a dead override in memory. Only a
     // no-longer-applicable override is dropped.
@@ -1175,7 +1162,7 @@ class _SpaceChildTile extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(AppRadii.surface),
           ),
           child: Row(
@@ -1188,8 +1175,8 @@ class _SpaceChildTile extends ConsumerWidget {
                   children: [
                     Text(
                       room.name,
-                      style: const TextStyle(
-                        color: AppColors.onBackground,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 14.5,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1199,8 +1186,8 @@ class _SpaceChildTile extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       room.lastMessage.isEmpty ? room.id : room.lastMessage,
-                      style: const TextStyle(
-                        color: AppColors.onSurfaceVariant,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
                         fontSize: 12.5,
                       ),
                       maxLines: 1,
@@ -1224,7 +1211,7 @@ class _SpaceChildTile extends ConsumerWidget {
                     ),
                     child: Text(
                       room.unreadCount > 99 ? '99+' : '${room.unreadCount}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
@@ -1245,16 +1232,16 @@ class _SpaceChildTile extends ConsumerWidget {
               if (onRemove != null)
                 IconButton(
                   onPressed: onRemove,
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.remove_circle_outline_rounded,
-                    color: AppColors.error,
+                    color: colorScheme.error,
                   ),
                   tooltip: '从空间移除',
                 )
               else
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.onSurfaceVariant,
+                  color: colorScheme.onSurfaceVariant,
                 ),
             ],
           ),
@@ -1281,7 +1268,8 @@ class _ActionSettingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = danger ? AppColors.error : AppColors.onBackground;
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = danger ? colorScheme.error : colorScheme.onSurface;
     return InkWell(
       borderRadius: BorderRadius.circular(AppRadii.content),
       onTap: onTap,
@@ -1291,7 +1279,7 @@ class _ActionSettingRow extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: danger ? AppColors.error : AppColors.onSurfaceVariant,
+              color: danger ? colorScheme.error : colorScheme.onSurfaceVariant,
               size: 18,
             ),
             const SizedBox(width: 10),
@@ -1307,15 +1295,15 @@ class _ActionSettingRow extends StatelessWidget {
             ),
             Text(
               value,
-              style: const TextStyle(
-                color: AppColors.onSurfaceVariant,
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
                 fontSize: 13,
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(
+            Icon(
               Icons.chevron_right_rounded,
-              color: AppColors.onSurfaceVariant,
+              color: colorScheme.onSurfaceVariant,
               size: 18,
             ),
           ],
