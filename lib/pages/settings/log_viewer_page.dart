@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/mutable_state.dart';
 import '../../src/rust/api/matrix.dart' as rust;
 import '../../theme/app_theme.dart';
+import '../../widgets/frosted_header_background.dart';
 
 /// Provider that accumulates log entries from the Rust stream.
 final logEntriesProvider =
@@ -115,7 +116,10 @@ class _LogViewerPageState extends ConsumerState<LogViewerPage> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: FrostedHeaderBackground(
+          backgroundColor: colorScheme.surface,
+        ),
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(

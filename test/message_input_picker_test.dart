@@ -5,8 +5,39 @@ import 'package:matter/pages/chat/attachment_picker.dart';
 import 'package:matter/pages/chat/composer_picker_panel.dart';
 import 'package:matter/pages/chat/latest_message_control.dart';
 import 'package:matter/pages/chat/message_input.dart';
+import 'package:matter/providers/chat_provider.dart';
+import 'package:matter/src/rust/api/matrix.dart' as rust;
 import 'package:matter/theme/app_theme.dart';
+import 'package:matter/widgets/frosted_header_background.dart';
 import 'package:matter/widgets/liquid_glass.dart';
+
+void _expectSharedBottomGradient(WidgetTester tester) {
+  expect(find.byType(ShaderMask), findsNothing);
+  expect(
+    find.byKey(const ValueKey('message-input-transparent-gradient')),
+    findsOneWidget,
+  );
+  final gradient = tester.widget<DecoratedBox>(
+    find.byKey(const ValueKey('message-input-transparent-gradient')),
+  );
+  final decoration = gradient.decoration as BoxDecoration;
+  expect(decoration.gradient, isA<LinearGradient>());
+  expect(
+    find.descendant(
+      of: find.byType(MessageInput),
+      matching: find.byType(GradientBackdropBlur),
+    ),
+    findsNothing,
+  );
+
+  expect(
+    find.descendant(
+      of: find.byType(MessageInput),
+      matching: find.byType(BackdropFilter),
+    ),
+    findsOneWidget,
+  );
+}
 
 void main() {
   testWidgets('picker button reopens the previously selected sticker tab', (
@@ -33,9 +64,7 @@ void main() {
     expect(find.byType(StickerPackPanel), findsOneWidget);
   });
 
-  testWidgets('input floats above a dimmed and blurred safe area', (
-    tester,
-  ) async {
+  testWidgets('input floats above a light themed safe area', (tester) async {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     tester.view.padding = const FakeViewPadding(bottom: 34);
@@ -53,15 +82,90 @@ void main() {
     );
     expect(surface.borderRadius, AppRadii.nav);
     expect(surface.blurSigma, 18);
+    expect(surface.elevation, 4);
     expect(surface.margin, const EdgeInsets.fromLTRB(10, 4, 10, 12));
-    expect(find.byType(ShaderMask), findsOneWidget);
-
-    final backdropFilters = find.descendant(
-      of: find.byType(MessageInput),
-      matching: find.byType(BackdropFilter),
+    final pickerSurface = tester.widget<LiquidGlassContainer>(
+      find.byKey(const ValueKey('composer-picker-surface')),
     );
-    expect(backdropFilters, findsNWidgets(2));
-    expect(tester.getBottomLeft(backdropFilters.first).dy, 800);
+    expect(pickerSurface.blurSigma, 18);
+    expect(pickerSurface.elevation, 4);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('composer-picker-surface')),
+        matching: find.byKey(const ValueKey('liquid-glass-shadow')),
+      ),
+      findsOneWidget,
+    );
+    // The input capsule keeps its own glass blur while the shared bottom
+    // layer supplies the theme-independent transparent gradient.
+    _expectSharedBottomGradient(tester);
+  });
+
+  testWidgets('input uses shared bottom transparent gradient in dark theme', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: AppTheme.darkTheme,
+          home: const _MessageInputHarness(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    _expectSharedBottomGradient(tester);
+  });
+
+  testWidgets('reply bar uses light theme colors', (tester) async {
+    const roomId = '!room:example.org';
+    const roomAccountKey = (roomId: roomId, userId: 'anonymous');
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container
+        .read(replyingToProvider(roomAccountKey).notifier)
+        .value = const rust.ChatMessage(
+      id: r'$reply',
+      senderId: '@alice:example.org',
+      senderName: 'Alice',
+      content: 'Hello',
+      mentionedUserIds: [],
+      mentionsRoom: false,
+      timestamp: '100',
+      isMe: false,
+      msgType: rust.MessageType.text,
+      isEdited: false,
+      editHistory: [],
+      reactions: [],
+      readers: [],
+      totalMembers: 2,
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const _MessageInputHarness(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final surface = find.byKey(const ValueKey('message-input-surface'));
+    final replyBar = find.byKey(const ValueKey('message-reply-bar'));
+    expect(find.descendant(of: surface, matching: replyBar), findsOneWidget);
+    final replyContainer = tester.widget<Container>(replyBar);
+    expect(replyContainer.decoration, isNull);
+    final handle = find.byKey(const ValueKey('message-relation-handle'));
+    expect(find.descendant(of: surface, matching: handle), findsOneWidget);
+    expect(tester.getSize(handle), const Size(28, 3));
+    expect(
+      find.descendant(of: surface, matching: find.byType(AnimatedSize)),
+      findsOneWidget,
+    );
+    expect(find.text('Alice'), findsOneWidget);
+    expect(find.text('Hello'), findsOneWidget);
   });
 
   testWidgets('plus toggles an inline attachment panel at picker height', (

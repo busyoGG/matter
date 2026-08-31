@@ -2,10 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:matter/theme/app_theme.dart';
 import 'package:matter/widgets/app_card.dart';
+import 'package:matter/widgets/soft_superellipse_border.dart';
+
+Material _cardMaterial(WidgetTester tester) {
+  final finder = find.byWidgetPredicate(
+    (widget) => widget is Material && widget.shape is SoftSuperellipseBorder,
+  );
+  expect(finder, findsOneWidget);
+  return tester.widget<Material>(finder);
+}
+
+void _expectCardShape(Material material) {
+  expect(material.shape, isA<SoftSuperellipseBorder>());
+  expect(
+    (material.shape! as SoftSuperellipseBorder).exponent,
+    SoftSuperellipseBorder.defaultExponent,
+  );
+}
 
 void main() {
   group('AppCard', () {
-    testWidgets('renders its child', (tester) async {
+    testWidgets('renders its child with a superellipse surface', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(body: AppCard(child: Text('Hello'))),
@@ -13,6 +32,7 @@ void main() {
       );
 
       expect(find.text('Hello'), findsOneWidget);
+      _expectCardShape(_cardMaterial(tester));
     });
 
     testWidgets('uses the default surface color', (tester) async {
@@ -25,14 +45,9 @@ void main() {
         ),
       );
 
-      final container = tester.widget<Container>(
-        find.ancestor(
-          of: find.byType(SizedBox),
-          matching: find.byType(Container),
-        ),
-      );
-      final decoration = container.decoration! as BoxDecoration;
-      expect(decoration.color, AppColors.surface);
+      final material = _cardMaterial(tester);
+      expect(material.color, AppColors.surface);
+      _expectCardShape(material);
     });
 
     testWidgets('uses a custom color when provided', (tester) async {
@@ -47,14 +62,9 @@ void main() {
         ),
       );
 
-      final container = tester.widget<Container>(
-        find.ancestor(
-          of: find.byType(SizedBox),
-          matching: find.byType(Container),
-        ),
-      );
-      final decoration = container.decoration! as BoxDecoration;
-      expect(decoration.color, Colors.red);
+      final material = _cardMaterial(tester);
+      expect(material.color, Colors.red);
+      _expectCardShape(material);
     });
 
     testWidgets('calls onTap when tapped', (tester) async {

@@ -5,6 +5,8 @@ import '../../providers/chat_provider.dart';
 import '../../src/rust/api/matrix.dart' hide redactMessage;
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
+import '../../widgets/avatar_info_row.dart';
+import '../../widgets/frosted_header_background.dart';
 import '../chat/action_failure_message.dart';
 import '../chat/chat_detail_page.dart';
 
@@ -21,24 +23,33 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final listBackground = Theme.of(context).scaffoldBackgroundColor;
     final contactsAsync = ref.watch(contactsProvider);
 
     return Scaffold(
+      backgroundColor: listBackground,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             floating: true,
             pinned: true,
-            title: Text(
-              '通讯录',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: colors.onSurface,
-                letterSpacing: -0.5,
+            flexibleSpace: FlexibleSpaceBar(
+              background: FrostedHeaderBackground(
+                backgroundColor: listBackground,
+              ),
+              titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
+              title: Text(
+                '通讯录',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: colors.onSurface,
+                  letterSpacing: -0.5,
+                ),
               ),
             ),
-            backgroundColor: colors.surface,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -129,18 +140,11 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
                 );
               }
 
-              return SliverList.separated(
-                itemCount: filtered.length,
-                separatorBuilder: (context, index) => Divider(
-                  color: colors.outlineVariant,
-                  thickness: 0.5,
-                  indent: 82,
-                  height: 1,
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _ContactTile(contact: filtered[index]),
+                  childCount: filtered.length,
                 ),
-                itemBuilder: (context, index) {
-                  final contact = filtered[index];
-                  return _ContactTile(contact: contact);
-                },
               );
             },
             loading: () => const SliverToBoxAdapter(
@@ -206,17 +210,20 @@ class _ContactTileState extends ConsumerState<_ContactTile> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final contact = widget.contact;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    return AvatarInfoRow(
+      rowPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      avatarShadowKey: ValueKey('contact-avatar-shadow:${contact.id}'),
+      separatorKey: ValueKey('contact-row-separator:${contact.id}'),
+      cardKey: ValueKey('contact-info-card:${contact.id}'),
+      avatar: AppAvatar(
+        fallback: contact.name,
+        size: 48,
+        radius: 0,
+        clipBehavior: Clip.none,
+        url: _resolvedAvatarUrl,
+      ),
       child: Row(
         children: [
-          AppAvatar(
-            fallback: contact.name,
-            size: 48,
-            radius: AppRadii.content,
-            url: _resolvedAvatarUrl,
-          ),
-          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

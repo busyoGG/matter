@@ -5,6 +5,7 @@ import '../../src/rust/api/matrix.dart';
 import '../../providers/connection_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cascade_title.dart';
+import '../../widgets/frosted_header_background.dart';
 import 'create_chat_page.dart';
 import 'chat_list_item.dart';
 import 'search_bar.dart';
@@ -39,6 +40,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final listBackground = widget.embedded
+        ? colors.surface
+        : Theme.of(context).scaffoldBackgroundColor;
     final AsyncValue<List<ChatRoom>> roomsAsync;
     if (widget.spaceId case final spaceId?) {
       roomsAsync = ref.watch(spaceChildrenProvider(spaceId));
@@ -62,113 +66,145 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final titleText =
         widget.title ??
         (connectionLabel.isNotEmpty ? connectionLabel : 'Matter');
+    final topInset = MediaQuery.viewPaddingOf(context).top;
+    final headerHeight = topInset + kToolbarHeight;
+
+    final scrollView = CustomScrollView(
+      slivers: [
+        if (!widget.embedded) ...[
+          SliverToBoxAdapter(child: SizedBox(height: headerHeight)),
+          const SliverToBoxAdapter(child: ChatSearchBar()),
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        ],
+        if (widget.embedded) ...[
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 96,
+            collapsedHeight: kToolbarHeight,
+            toolbarHeight: kToolbarHeight,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            forceMaterialTransparency: true,
+            flexibleSpace: FlexibleSpaceBar(
+              background: FrostedHeaderBackground(
+                backgroundColor: listBackground,
+              ),
+              titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
+              title: CascadeTitle(
+                text: titleText,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: colors.onSurface,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: ChatSearchBar()),
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        ],
+        roomsAsync.when(
+          data: (rooms) {
+            if (widget.onRoomSelected != null &&
+                widget.selectedRoomId == null) {
+              final firstJoinedRoom = rooms.where(
+                (room) => room.roomState == 'joined',
+              );
+              if (firstJoinedRoom.isNotEmpty) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    widget.onRoomSelected!(firstJoinedRoom.first);
+                  }
+                });
+              }
+            }
+            if (rooms.isEmpty) {
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Center(
+                    child: Text(
+                      widget.emptyLabel ?? '暂无聊天',
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final room = rooms[index];
+                return ChatListItem(
+                  room: room,
+                  isSelected: room.id == widget.selectedRoomId,
+                  onRoomSelected: widget.onRoomSelected,
+                );
+              }, childCount: rooms.length),
+            );
+          },
+          loading: () => const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
+          ),
+          error: (err, _) => SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Center(
+                child: SelectableText(
+                  '加载失败: $err',
+                  style: TextStyle(color: colors.onSurfaceVariant),
+                ),
+              ),
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.only(bottom: widget.embedded ? 80 : 96),
+        ),
+      ],
+    );
 
     final content = Stack(
       children: [
-        CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              floating: !widget.embedded,
-              pinned: true,
-              expandedHeight: 56,
-              collapsedHeight: 56,
-              toolbarHeight: 56,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
-                title: CascadeTitle(
-                  text: titleText,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: colors.onSurface,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ),
-              backgroundColor: widget.embedded
-                  ? colors.surface
-                  : colors.surface.withValues(alpha: 0.85),
-            ),
-            const SliverToBoxAdapter(child: ChatSearchBar()),
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
-            roomsAsync.when(
-              data: (rooms) {
-                if (widget.onRoomSelected != null &&
-                    widget.selectedRoomId == null) {
-                  final firstJoinedRoom = rooms.where(
-                    (room) => room.roomState == 'joined',
-                  );
-                  if (firstJoinedRoom.isNotEmpty) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) {
-                        widget.onRoomSelected!(firstJoinedRoom.first);
-                      }
-                    });
-                  }
-                }
-                if (rooms.isEmpty) {
-                  return SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: Center(
-                        child: Text(
-                          widget.emptyLabel ?? '暂无聊天',
-                          style: TextStyle(
-                            color: colors.onSurfaceVariant,
-                            fontSize: 14,
-                          ),
-                        ),
+        if (widget.embedded)
+          scrollView
+        else
+          GradientFrostedHeaderBackground(
+            headerHeight: headerHeight,
+            headerChild: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: EdgeInsets.only(top: topInset, left: 16, right: 16),
+                child: SizedBox(
+                  height: kToolbarHeight,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: CascadeTitle(
+                      text: titleText,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: colors.onSurface,
+                        letterSpacing: -0.5,
                       ),
                     ),
-                  );
-                }
-                return SliverList.separated(
-                  itemCount: rooms.length,
-                  separatorBuilder: (context, index) => widget.embedded
-                      ? const SizedBox(height: 2)
-                      : Divider(
-                          color: colors.outlineVariant,
-                          thickness: 0.5,
-                          height: 0.5,
-                        ),
-                  itemBuilder: (context, index) {
-                    final room = rooms[index];
-                    return ChatListItem(
-                      room: room,
-                      isSelected: room.id == widget.selectedRoomId,
-                      onRoomSelected: widget.onRoomSelected,
-                    );
-                  },
-                );
-              },
-              loading: () => const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary,
-                      strokeWidth: 2,
-                    ),
-                  ),
-                ),
-              ),
-              error: (err, _) => SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Center(
-                    child: SelectableText(
-                      '加载失败: $err',
-                      style: TextStyle(color: colors.onSurfaceVariant),
-                    ),
                   ),
                 ),
               ),
             ),
-            SliverPadding(
-              padding: EdgeInsets.only(bottom: widget.embedded ? 80 : 96),
-            ),
-          ],
-        ),
+            child: scrollView,
+          ),
         Positioned(
           right: 16,
           bottom: widget.embedded ? 16 : 96,
@@ -197,6 +233,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     if (widget.embedded) {
       return ColoredBox(color: colors.surface, child: content);
     }
-    return Scaffold(body: content);
+    return Scaffold(backgroundColor: listBackground, body: content);
   }
 }

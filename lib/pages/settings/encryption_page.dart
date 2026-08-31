@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../src/rust/api/matrix.dart' as rust;
 import '../../theme/app_theme.dart';
 import '../../widgets/app_card.dart';
+import '../../widgets/frosted_header_background.dart';
 import '../../widgets/max_content_width.dart';
 
 class EncryptionPage extends StatefulWidget {
@@ -111,8 +112,16 @@ class _EncryptionPageState extends State<EncryptionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final pageBackground = Theme.of(context).scaffoldBackgroundColor;
     return Scaffold(
-      appBar: AppBar(title: const Text('加密与验证')),
+      backgroundColor: pageBackground,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        flexibleSpace: FrostedHeaderBackground(backgroundColor: pageBackground),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: const Text('加密与验证'),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(

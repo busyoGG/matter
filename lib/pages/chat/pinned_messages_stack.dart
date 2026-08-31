@@ -140,16 +140,12 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
     final colors = Theme.of(context).colorScheme;
     _reportVisibleCount(visibleRows);
     return Material(
-      color: colors.surface,
-      child: Container(
+      color: Colors.transparent,
+      child: SizedBox(
         key: const ValueKey('pinned-messages-stack'),
         height: rowHeight * visibleRows,
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: colors.outlineVariant, width: 0.5),
-          ),
-        ),
         child: ListView.builder(
+          primary: false,
           padding: EdgeInsets.zero,
           itemCount: messages.length,
           itemExtent: rowHeight,
@@ -170,16 +166,7 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
                   : () => widget.onMessageTap(message.id),
               child: Row(
                 children: [
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 3,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 25),
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

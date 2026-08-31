@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../src/rust/api/matrix.dart' as rust;
 import '../../theme/app_theme.dart';
+import '../../widgets/frosted_header_background.dart';
 import 'action_failure_message.dart';
 import 'chat_timestamp.dart';
 
@@ -358,7 +359,8 @@ class _PinnedMessagesPageState extends ConsumerState<PinnedMessagesPage> {
     return Scaffold(
       backgroundColor: colors.surface,
       appBar: AppBar(
-        backgroundColor: colors.surface,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: FrostedHeaderBackground(backgroundColor: colors.surface),
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Text(

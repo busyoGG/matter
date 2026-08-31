@@ -2496,15 +2496,17 @@ class _StickyGroupAvatar extends SingleChildRenderObjectWidget {
     required this.swipeOffset,
     required this.onLongPress,
   }) : super(
-         child: GestureDetector(
-           key: const ValueKey('message-sender-avatar'),
-           behavior: HitTestBehavior.opaque,
-           onLongPress: onLongPress,
-           child: AppAvatar(
-             fallback: fallback,
-             size: avatarSize,
-             radius: AppRadii.content,
-             url: avatarUrl,
+         child: RepaintBoundary(
+           child: GestureDetector(
+             key: const ValueKey('message-sender-avatar'),
+             behavior: HitTestBehavior.opaque,
+             onLongPress: onLongPress,
+             child: AppAvatar(
+               fallback: fallback,
+               size: avatarSize,
+               radius: AppRadii.content,
+               url: avatarUrl,
+             ),
            ),
          ),
        );

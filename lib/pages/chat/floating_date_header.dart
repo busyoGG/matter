@@ -37,6 +37,10 @@ class FloatingDateHeader extends StatefulWidget {
   final List<GlobalKey> separatorKeys;
   final double topInset;
 
+  /// Extra distance from the scroll viewport's origin to the visible top edge.
+  /// This is needed when a transparent app bar is laid over the timeline.
+  final double activationInset;
+
   const FloatingDateHeader({
     super.key,
     required this.scrollController,
@@ -44,6 +48,7 @@ class FloatingDateHeader extends StatefulWidget {
     required this.boundaries,
     required this.separatorKeys,
     this.topInset = 0,
+    this.activationInset = 0,
   });
 
   @override
@@ -133,8 +138,8 @@ class _FloatingDateHeaderState extends State<FloatingDateHeader> {
       return _currentLabel;
     }
 
-    // Pick the nearest rendered day separator at or above the viewport top.
-    const activationLine = 1.0;
+    // Pick the nearest rendered day separator at or above the visible top.
+    final activationLine = widget.activationInset + 1.0;
     int? bestIndex;
     double bestTop = double.negativeInfinity;
     final keys = widget.separatorKeys;

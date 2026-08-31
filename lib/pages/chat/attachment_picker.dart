@@ -16,6 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../src/rust/api/matrix.dart' as rust;
 import '../../theme/app_theme.dart';
+import '../../widgets/liquid_glass.dart';
 import '../chat/chat_image_editor_page.dart';
 import '../chat/latest_message_control.dart';
 
@@ -591,13 +592,12 @@ class _AttachmentPickerState extends State<AttachmentPicker> {
     final colors = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-      child: Material(
-        color: colors.surface,
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.surface),
-          side: BorderSide(color: colors.outlineVariant),
-        ),
+      child: LiquidGlassContainer(
+        key: const ValueKey('attachment-picker-surface'),
+        padding: EdgeInsets.zero,
+        borderRadius: AppRadii.surface,
+        blurSigma: 18,
+        elevation: 4,
         child: Column(
           children: [
             GestureDetector(

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/markdown/markdown_composer.dart';
 import '../../features/matrix_html/matrix_html_renderer.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/frosted_header_background.dart';
 
 /// What the full-screen markdown composer returns to the message input:
 /// the (possibly edited) draft [text], and whether the message was [sent]
@@ -156,6 +157,7 @@ class _MarkdownComposerPageState extends ConsumerState<MarkdownComposerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final pageBackground = Theme.of(context).scaffoldBackgroundColor;
     return PopScope(
       // Keep system back from dropping in-editor edits: veto it and close
       // through the same draft-returning path as the close button.
@@ -165,7 +167,14 @@ class _MarkdownComposerPageState extends ConsumerState<MarkdownComposerPage> {
         _close();
       },
       child: Scaffold(
+        backgroundColor: pageBackground,
         appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          flexibleSpace: FrostedHeaderBackground(
+            backgroundColor: pageBackground,
+          ),
+          elevation: 0,
+          scrolledUnderElevation: 0,
           title: const Text('Markdown'),
           leading: IconButton(
             tooltip: '关闭',

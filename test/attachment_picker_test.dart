@@ -8,6 +8,8 @@ import 'package:matter/pages/chat/chat_image_editor_page.dart';
 import 'package:matter/pages/chat/latest_message_control.dart';
 import 'package:matter/pages/chat/message_input.dart';
 import 'package:matter/theme/app_theme.dart';
+import 'package:matter/widgets/liquid_glass.dart';
+import 'package:matter/widgets/soft_superellipse_border.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:pro_image_editor/pro_image_editor.dart';
 
@@ -166,23 +168,40 @@ void main() {
     expect(find.text('图片 / 视频'), findsNothing);
     expect(find.byIcon(Icons.close_rounded), findsNothing);
 
-    final themeSurface = Theme.of(
-      tester.element(find.byType(AttachmentPicker)),
-    ).colorScheme.surface;
-    final outerSurface = tester
-        .widgetList<Material>(
-          find.descendant(
-            of: find.byType(AttachmentPicker),
-            matching: find.byType(Material),
-          ),
-        )
-        .singleWhere(
-          (material) =>
-              material.color == themeSurface &&
-              material.clipBehavior == Clip.antiAlias,
-        );
-    final shape = outerSurface.shape! as RoundedRectangleBorder;
-    expect(shape.borderRadius, BorderRadius.circular(AppRadii.surface));
+    final pickerSurface = tester.widget<LiquidGlassContainer>(
+      find.byKey(const ValueKey('attachment-picker-surface')),
+    );
+    expect(pickerSurface.borderRadius, AppRadii.surface);
+    expect(pickerSurface.blurSigma, 18);
+    expect(pickerSurface.elevation, 4);
+    final surfaceMaterial = tester.widget<Material>(
+      find.descendant(
+        of: find.byKey(const ValueKey('attachment-picker-surface')),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Material &&
+              widget.shape is SoftSuperellipseBorder,
+        ),
+      ),
+    );
+    expect(surfaceMaterial.shape, isA<SoftSuperellipseBorder>());
+    expect(
+      (surfaceMaterial.shape! as SoftSuperellipseBorder).exponent,
+      SoftSuperellipseBorder.defaultExponent,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('attachment-picker-surface')),
+        matching: find.byType(BackdropFilter),
+      ),
+      findsNWidgets(2),
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('attachment-picker-surface')),
+        matching: find.byKey(const ValueKey('liquid-glass-shadow')),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('attachment panel expands after an upward drag', (tester) async {

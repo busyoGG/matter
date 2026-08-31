@@ -9,6 +9,7 @@ import '../../providers/chat_provider.dart';
 import '../../src/rust/api/matrix.dart' as rust;
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
+import '../../widgets/frosted_header_background.dart';
 import '../../widgets/max_content_width.dart';
 import 'avatar_crop_editor_page.dart';
 
@@ -178,7 +179,10 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: FrostedHeaderBackground(
+          backgroundColor: colorScheme.surface,
+        ),
         title: Text('个人资料'),
         elevation: 0,
         scrolledUnderElevation: 0,

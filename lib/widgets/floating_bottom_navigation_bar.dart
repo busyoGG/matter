@@ -1,22 +1,39 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
+Widget _navigationBackdropFilter({
+  Key? key,
+  required double sigma,
+  required Widget child,
+}) {
+  return BackdropFilter(
+    key: key,
+    filterConfig: ImageFilterConfig.blur(
+      sigmaX: sigma,
+      sigmaY: sigma,
+      bounded: true,
+    ),
+    child: child,
+  );
+}
+
 class FloatingBottomNavigationBar extends StatefulWidget {
   final PageController controller;
   final int currentIndex;
   final ValueChanged<int> onIndexChanged;
+  final bool visible;
 
   const FloatingBottomNavigationBar({
     super.key,
     required this.controller,
     required this.currentIndex,
     required this.onIndexChanged,
+    this.visible = true,
   });
 
   @override
@@ -372,6 +389,7 @@ class _FloatingBottomNavigationBarState
   }
 
   void _resetPointer() {
+    final wasDragging = _isDragging;
     _pointerId = null;
     _pointerDownPosition = null;
     _velocityTracker = null;
@@ -382,6 +400,7 @@ class _FloatingBottomNavigationBarState
     _pointerDownGlobalPosition = null;
     _isDragging = false;
     _suppressTap = false;
+    if (wasDragging && mounted) setState(() {});
   }
 
   void _settleToPage(int index) {
@@ -417,219 +436,241 @@ class _FloatingBottomNavigationBarState
         ? AppColors.lightGlassBackground
         : AppColors.glassBackground;
     final border = isLight ? AppColors.lightGlassBorder : AppColors.glassBorder;
-    // Keep the active capsule more transparent than the navigation surface,
-    // matching ProcessManager's separate frosted indicator layer.
+    // Keep the active capsule more transparent than the navigation surface so
+    // the shared blurred background remains visible.
     final indicatorTintAlpha = isLight ? 0.16 : 0.06;
     final indicatorWashAlpha = isLight ? 0.06 : 0.03;
     final navigationShadow = isLight
         ? Colors.black.withValues(alpha: 0.22)
         : Colors.black.withValues(alpha: 0.48);
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 28, right: 28, bottom: 26),
-      child: SizedBox(
-        key: const ValueKey('navigation-frame'),
-        height: 54,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // PhysicalModel casts the shadow only outside the pill outline;
-            // unlike a translucent fill, it does not tint the bar interior.
-            Positioned.fill(
-              child: PhysicalModel(
-                key: const ValueKey('navigation-shadow'),
-                color: Colors.transparent,
-                shadowColor: navigationShadow,
-                elevation: 10,
-                borderRadius: BorderRadius.circular(27),
-                clipBehavior: Clip.none,
-                child: const SizedBox.expand(),
-              ),
-            ),
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(27),
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                  child: DecoratedBox(
-                    key: const ValueKey('navigation-background'),
-                    decoration: BoxDecoration(
-                      color: background,
-                      borderRadius: BorderRadius.circular(27),
-                      border: Border.all(color: border, width: 0.8),
+    return IgnorePointer(
+      ignoring: !widget.visible,
+      child: AnimatedSlide(
+        key: const ValueKey('navigation-visibility-slide'),
+        offset: widget.visible ? Offset.zero : const Offset(0, 1.2),
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 28, right: 28, bottom: 26),
+          child: SizedBox(
+            key: const ValueKey('navigation-frame'),
+            height: 54,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // PhysicalModel casts the shadow only outside the pill outline;
+                // unlike a translucent fill, it does not tint the bar interior.
+                Positioned.fill(
+                  child: PhysicalModel(
+                    key: const ValueKey('navigation-shadow'),
+                    color: Colors.transparent,
+                    shadowColor: navigationShadow,
+                    elevation: 10,
+                    borderRadius: BorderRadius.circular(27),
+                    clipBehavior: Clip.none,
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(27),
+                    child: _navigationBackdropFilter(
+                      sigma: 18,
+                      child: DecoratedBox(
+                        key: const ValueKey('navigation-background'),
+                        decoration: BoxDecoration(
+                          color: background,
+                          borderRadius: BorderRadius.circular(27),
+                          border: Border.all(color: border, width: 0.8),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-            Positioned.fill(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  _surfaceWidth = constraints.maxWidth;
-                  final itemWidth = constraints.maxWidth / _itemCount;
-                  return AnimatedBuilder(
-                    animation: Listenable.merge([
-                      widget.controller,
-                      _jellyController,
-                      _clickController,
-                    ]),
-                    builder: (context, child) {
-                      final page =
-                          (_isDragging
-                                  ? (_dragIndicatorPage ??
-                                        _pageOrCurrentIndex())
-                                  : _pageOrCurrentIndex())
-                              .clamp(0.0, (_itemCount - 1).toDouble());
-                      final fraction = page - page.floorToDouble();
-                      final transitionProgress = math.sin(
-                        math.pi * fraction.clamp(0.0, 1.0),
-                      );
-                      final visual = _visualProgress();
-                      final dragShape = visual.clamp(0.0, 1.0).toDouble();
-                      final rebound = (-visual).clamp(0.0, 1.0).toDouble();
-                      // ProcessManager leaves an 8dp inset on each side. The
-                      // larger capsule gives the drag deformation enough room
-                      // to remain visible instead of looking like a thin pill.
-                      const indicatorInset = 8.0;
-                      final baseWidth = math.max(
-                        0.0,
-                        itemWidth - indicatorInset * 2,
-                      );
-                      final clickScale = _clickScale();
-                      // Page transitions narrow and flatten the capsule. Drag and
-                      // jelly deformation stay separate so they can remain elastic.
-                      final transitionNarrow = 1 - 0.12 * transitionProgress;
-                      final transitionFlatten = 1 - 0.04 * transitionProgress;
-                      final dragWidth = baseWidth * (1 + 0.42 * dragShape);
-                      final animatedWidth =
-                          math.max(baseWidth, dragWidth) *
-                          transitionNarrow *
-                          (1 + 0.50 * rebound) *
-                          clickScale.scaleX;
-                      // The capsule may widen during a drag, but its
-                      // horizontal bounds are always clamped to the complete
-                      // tab range. This prevents dragging it outside the bar.
-                      final width = math.min(
-                        constraints.maxWidth,
-                        math.max(
-                          1.0,
-                          _isDragging
-                              ? dragWidth
-                              : math.min(itemWidth - 2, animatedWidth),
-                        ),
-                      );
-                      // Keep ProcessManager's vertical elastic overhang: the
-                      // dragged capsule may become taller than the 54dp bar.
-                      // The outer indicator stack uses Clip.none for this.
-                      final height = math.max(
-                        1.0,
-                        (42 + 24 * dragShape - 26 * rebound) *
-                            transitionFlatten *
-                            clickScale.scaleY,
-                      );
-                      final requestedCenter =
-                          _isDragging && _dragIndicatorCenter != null
-                          ? _dragIndicatorCenter!
-                          : itemWidth * page + itemWidth / 2;
-                      final center = requestedCenter.clamp(
-                        width / 2,
-                        constraints.maxWidth - width / 2,
-                      );
-                      final indicatorLeft = center - width / 2;
-                      final indicatorTop = (constraints.maxHeight - height) / 2;
-
-                      return Stack(
-                        key: const ValueKey('navigation-indicator-layer'),
-                        clipBehavior: Clip.none,
-                        children: [
-                          // BackdropFilter must be painted directly over the
-                          // page/bar pixels. Its translucent tint reveals the
-                          // blurred content instead of replacing it with a
-                          // solid primaryContainer capsule.
-                          Positioned(
-                            left: indicatorLeft,
-                            top: indicatorTop,
-                            child: ClipRRect(
+                Positioned.fill(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      _surfaceWidth = constraints.maxWidth;
+                      final itemWidth = constraints.maxWidth / _itemCount;
+                      return AnimatedBuilder(
+                        animation: Listenable.merge([
+                          widget.controller,
+                          _jellyController,
+                          _clickController,
+                        ]),
+                        builder: (context, child) {
+                          final page =
+                              (_isDragging
+                                      ? (_dragIndicatorPage ??
+                                            _pageOrCurrentIndex())
+                                      : _pageOrCurrentIndex())
+                                  .clamp(0.0, (_itemCount - 1).toDouble());
+                          final fraction = page - page.floorToDouble();
+                          final transitionProgress = math.sin(
+                            math.pi * fraction.clamp(0.0, 1.0),
+                          );
+                          final visual = _visualProgress();
+                          final dragShape = visual.clamp(0.0, 1.0).toDouble();
+                          final rebound = (-visual).clamp(0.0, 1.0).toDouble();
+                          // ProcessManager leaves an 8dp inset on each side. The
+                          // larger capsule gives the drag deformation enough room
+                          // to remain visible instead of looking like a thin pill.
+                          const indicatorInset = 8.0;
+                          final baseWidth = math.max(
+                            0.0,
+                            itemWidth - indicatorInset * 2,
+                          );
+                          final clickScale = _clickScale();
+                          // Page transitions narrow and flatten the capsule. Drag and
+                          // jelly deformation stay separate so they can remain elastic.
+                          final transitionNarrow =
+                              1 - 0.12 * transitionProgress;
+                          final transitionFlatten =
+                              1 - 0.04 * transitionProgress;
+                          final dragWidth = baseWidth * (1 + 0.42 * dragShape);
+                          final animatedWidth =
+                              math.max(baseWidth, dragWidth) *
+                              transitionNarrow *
+                              (1 + 0.50 * rebound) *
+                              clickScale.scaleX;
+                          // The capsule may widen during a drag, but its
+                          // horizontal bounds are always clamped to the complete
+                          // tab range. This prevents dragging it outside the bar.
+                          final width = math.min(
+                            constraints.maxWidth,
+                            math.max(
+                              1.0,
+                              _isDragging
+                                  ? dragWidth
+                                  : math.min(itemWidth - 2, animatedWidth),
+                            ),
+                          );
+                          // Keep ProcessManager's vertical elastic overhang: the
+                          // dragged capsule may become taller than the 54dp bar.
+                          // The outer indicator stack uses Clip.none for this.
+                          final height = math.max(
+                            1.0,
+                            (42 + 24 * dragShape - 26 * rebound) *
+                                transitionFlatten *
+                                clickScale.scaleY,
+                          );
+                          final requestedCenter =
+                              _isDragging && _dragIndicatorCenter != null
+                              ? _dragIndicatorCenter!
+                              : itemWidth * page + itemWidth / 2;
+                          final center = requestedCenter.clamp(
+                            width / 2,
+                            constraints.maxWidth - width / 2,
+                          );
+                          final indicatorLeft = center - width / 2;
+                          final indicatorTop =
+                              (constraints.maxHeight - height) / 2;
+                          final indicatorTint = DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: colors.primaryContainer.withValues(
+                                alpha: indicatorTintAlpha,
+                              ),
                               borderRadius: BorderRadius.circular(height / 2),
-                              child: BackdropFilter(
-                                key: const ValueKey(
-                                  'navigation-indicator-backdrop',
+                            ),
+                            child: SizedBox(width: width, height: height),
+                          );
+
+                          return Stack(
+                            key: const ValueKey('navigation-indicator-layer'),
+                            clipBehavior: Clip.none,
+                            children: [
+                              // The navigation background supplies blur for the
+                              // resting capsule. Add a second blur only while the
+                              // capsule is following a pointer drag.
+                              Positioned(
+                                left: indicatorLeft,
+                                top: indicatorTop,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    height / 2,
+                                  ),
+                                  child: _isDragging
+                                      ? _navigationBackdropFilter(
+                                          key: const ValueKey(
+                                            'navigation-indicator-backdrop',
+                                          ),
+                                          sigma: 26,
+                                          child: indicatorTint,
+                                        )
+                                      : indicatorTint,
                                 ),
-                                filter: ui.ImageFilter.blur(
-                                  sigmaX: 26,
-                                  sigmaY: 26,
-                                ),
+                              ),
+                              // A very light foreground wash and outline keep the
+                              // active tab readable while leaving the surface
+                              // visibly translucent.
+                              Positioned(
+                                left: indicatorLeft,
+                                top: indicatorTop,
                                 child: DecoratedBox(
+                                  key: const ValueKey('navigation-indicator'),
                                   decoration: BoxDecoration(
                                     color: colors.primaryContainer.withValues(
-                                      alpha: indicatorTintAlpha,
+                                      alpha: indicatorWashAlpha,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                      height / 2,
+                                    ),
+                                    border: Border.all(
+                                      color: colors.primary.withValues(
+                                        alpha: 0.42,
+                                      ),
+                                      width: 0.8,
                                     ),
                                   ),
                                   child: SizedBox(width: width, height: height),
                                 ),
                               ),
-                            ),
-                          ),
-                          // A very light foreground wash and outline keep the
-                          // active tab readable while leaving the frosted layer
-                          // visibly translucent.
-                          Positioned(
-                            left: indicatorLeft,
-                            top: indicatorTop,
-                            child: DecoratedBox(
-                              key: const ValueKey('navigation-indicator'),
-                              decoration: BoxDecoration(
-                                color: colors.primaryContainer.withValues(
-                                  alpha: indicatorWashAlpha,
-                                ),
-                                borderRadius: BorderRadius.circular(height / 2),
-                                border: Border.all(
-                                  color: colors.primary.withValues(alpha: 0.42),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: SizedBox(width: width, height: height),
-                            ),
-                          ),
-                        ],
+                            ],
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              ),
-            ),
-            Positioned.fill(
-              child: Listener(
-                key: const ValueKey('navigation-drag-surface'),
-                behavior: HitTestBehavior.opaque,
-                // Listen to raw pointer events instead of waiting for a
-                // gesture recognizer to win the arena. The navigation surface
-                // is already the top hit-test target, so this keeps the page
-                // and indicator at the exact pointer position every frame.
-                onPointerDown: _handlePointerDown,
-                onPointerMove: _handlePointerMove,
-                onPointerUp: _handlePointerUp,
-                onPointerCancel: _handlePointerCancel,
-                child: Row(
-                  children: [
-                    for (var index = 0; index < _destinations.length; index++)
-                      Expanded(
-                        child: _NavigationBarItem(
-                          destination: _destinations[index],
-                          selected: _currentIndex == index,
-                          onTap: () {
-                            if (index != _currentIndex) {
-                              _startClickAnimation();
-                              _settleToPage(index);
-                            }
-                          },
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
-              ),
+                Positioned.fill(
+                  child: Listener(
+                    key: const ValueKey('navigation-drag-surface'),
+                    behavior: HitTestBehavior.opaque,
+                    // Listen to raw pointer events instead of waiting for a
+                    // gesture recognizer to win the arena. The navigation surface
+                    // is already the top hit-test target, so this keeps the page
+                    // and indicator at the exact pointer position every frame.
+                    onPointerDown: _handlePointerDown,
+                    onPointerMove: _handlePointerMove,
+                    onPointerUp: _handlePointerUp,
+                    onPointerCancel: _handlePointerCancel,
+                    child: Row(
+                      children: [
+                        for (
+                          var index = 0;
+                          index < _destinations.length;
+                          index++
+                        )
+                          Expanded(
+                            child: _NavigationBarItem(
+                              destination: _destinations[index],
+                              selected: _currentIndex == index,
+                              onTap: () {
+                                if (index != _currentIndex) {
+                                  _startClickAnimation();
+                                  _settleToPage(index);
+                                }
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

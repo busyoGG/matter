@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../widgets/soft_superellipse_border.dart';
+
 class AppColors {
   // Dark backgrounds
   static const Color background = Color(0xFF0F1419);
@@ -45,9 +47,11 @@ class AppColors {
 class AppRadii {
   static const double tag = 10; // 角标、小图标背景
   static const double button = 14; // 按钮、Space 内层标签
-  static const double content = 18; // 头像、消息气泡
-  static const double surface = 22; // 搜索框、输入框、卡片、Space 外层
-  static const double nav = 28; // 底部导航
+  static const double content = 20; // 消息气泡
+  static const double avatar = 26; // 列表头像
+  static const double surface = 26; // 搜索框、输入框、卡片、Space 外层
+  static const double card = 30; // 联系人、会话信息卡片
+  static const double nav = 32; // 底部导航
 }
 
 class AppTheme {
@@ -155,8 +159,9 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
-        shape: RoundedRectangleBorder(
+        shape: SoftSuperellipseBorder(
           borderRadius: BorderRadius.circular(AppRadii.surface),
+          exponent: SoftSuperellipseBorder.defaultExponent,
         ),
         margin: EdgeInsets.zero,
       ),

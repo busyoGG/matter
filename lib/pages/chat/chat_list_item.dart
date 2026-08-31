@@ -6,6 +6,7 @@ import '../../providers/chat_provider.dart';
 import '../../src/rust/api/matrix.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
+import '../../widgets/avatar_info_row.dart';
 import 'chat_timestamp.dart';
 import 'chat_detail_page.dart';
 import 'message_input.dart';
@@ -122,144 +123,132 @@ class ChatListItem extends ConsumerWidget {
       onLongPress: room.roomState == 'joined' && room.roomType != 'space'
           ? () => _showRoomListActions(context, ref, room)
           : null,
-      child: Container(
-        margin: onRoomSelected != null
-            ? const EdgeInsets.symmetric(horizontal: 8)
-            : null,
-        padding: EdgeInsets.symmetric(
-          horizontal: onRoomSelected != null ? 12 : 16,
-          vertical: dense ? 6 : 8,
+      child: AvatarInfoRow(
+        rowPadding: EdgeInsets.symmetric(
+          horizontal: onRoomSelected != null ? 8 : 16,
+          vertical: dense ? 4 : 6,
         ),
-        decoration: BoxDecoration(
-          color: isSelected ? colorScheme.surfaceContainerHighest : null,
-          borderRadius: BorderRadius.circular(AppRadii.button),
+        cardColor: isSelected ? colorScheme.surfaceContainerHighest : null,
+        avatarShadowKey: ValueKey('room-avatar-shadow:${room.id}'),
+        separatorKey: ValueKey('room-row-separator:${room.id}'),
+        cardKey: ValueKey('room-info-card:${room.id}'),
+        avatar: AppAvatar(
+          key: ValueKey('room-avatar:${room.id}:${room.avatarUrl}'),
+          fallback: room.name,
+          size: dense ? 44 : 52,
+          radius: 0,
+          clipBehavior: Clip.none,
+          url: room.avatarUrl,
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppAvatar(
-              key: ValueKey('room-avatar:${room.id}:${room.avatarUrl}'),
-              fallback: room.name,
-              size: dense ? 44 : 52,
-              url: room.avatarUrl,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      if (showRoomTypeIcon) ...[
-                        _roomTypeIcon(room.roomType, colorScheme),
-                        const SizedBox(width: 4),
-                      ],
-                      Expanded(
-                        child: Text(
-                          room.name,
-                          style: TextStyle(
-                            color: colorScheme.onSurface,
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (room.isMuted) ...[
-                        const SizedBox(width: 6),
-                        Icon(
-                          Icons.volume_off_rounded,
-                          key: ValueKey('room-muted-icon:${room.id}'),
-                          size: 15,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                      const SizedBox(width: 8),
-                      Text(
-                        formatChatListTime(room.lastMessageTime),
-                        style: TextStyle(
-                          color: hasUnread
-                              ? unreadAccent
-                              : colorScheme.onSurfaceVariant,
-                          fontSize: 12,
-                          fontWeight: hasUnread
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text.rich(
-                          TextSpan(
-                            children: [
-                              if (hasDraft)
-                                const TextSpan(
-                                  text: '草稿：',
-                                  style: TextStyle(
-                                    color: AppColors.error,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              TextSpan(text: preview),
-                            ],
-                          ),
-                          style: TextStyle(
-                            color: colorScheme.onSurfaceVariant,
-                            fontSize: 13.5,
-                            height: 1.3,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (hasUnread) ...[
-                        const SizedBox(width: 8),
-                        if (room.unreadCount > 0)
-                          Container(
-                            key: ValueKey('room-unread-badge:${room.id}'),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 7,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: unreadAccent,
-                              borderRadius: BorderRadius.circular(AppRadii.tag),
-                            ),
-                            child: Text(
-                              room.unreadCount > 99
-                                  ? '99+'
-                                  : '${room.unreadCount}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          )
-                        else
-                          Container(
-                            key: ValueKey('room-unread-dot:${room.id}'),
-                            width: 9,
-                            height: 9,
-                            decoration: BoxDecoration(
-                              color: unreadAccent,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
-                    ],
-                  ),
-                  if (isPendingMembership) ...[
-                    const SizedBox(height: 8),
-                    _PendingRoomActions(room: room),
-                  ],
+            Row(
+              children: [
+                if (showRoomTypeIcon) ...[
+                  _roomTypeIcon(room.roomType, colorScheme),
+                  const SizedBox(width: 4),
                 ],
-              ),
+                Expanded(
+                  child: Text(
+                    room.name,
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (room.isMuted) ...[
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.volume_off_rounded,
+                    key: ValueKey('room-muted-icon:${room.id}'),
+                    size: 15,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ],
+                const SizedBox(width: 8),
+                Text(
+                  formatChatListTime(room.lastMessageTime),
+                  style: TextStyle(
+                    color: hasUnread
+                        ? unreadAccent
+                        : colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: hasUnread ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        if (hasDraft)
+                          const TextSpan(
+                            text: '草稿：',
+                            style: TextStyle(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        TextSpan(text: preview),
+                      ],
+                    ),
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
+                      fontSize: 13.5,
+                      height: 1.3,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (hasUnread) ...[
+                  const SizedBox(width: 8),
+                  if (room.unreadCount > 0)
+                    Container(
+                      key: ValueKey('room-unread-badge:${room.id}'),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: unreadAccent,
+                        borderRadius: BorderRadius.circular(AppRadii.tag),
+                      ),
+                      child: Text(
+                        room.unreadCount > 99 ? '99+' : '${room.unreadCount}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      key: ValueKey('room-unread-dot:${room.id}'),
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                        color: unreadAccent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                ],
+              ],
+            ),
+            if (isPendingMembership) ...[
+              const SizedBox(height: 8),
+              _PendingRoomActions(room: room),
+            ],
           ],
         ),
       ),

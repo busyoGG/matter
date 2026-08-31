@@ -9,6 +9,7 @@ import '../../src/rust/api/matrix.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
 import '../../widgets/cascade_title.dart';
+import '../../widgets/frosted_header_background.dart';
 import 'chat_list_item.dart';
 import 'space_detail_page.dart';
 
@@ -24,12 +25,14 @@ class SpacePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final pageBackground = Theme.of(context).scaffoldBackgroundColor;
     final spacesAsync = ref.watch(spacesProvider);
     final ungroupedAsync = ref.watch(ungroupedRoomsProvider);
     final connectionLabel = ref.watch(connectionLabelProvider);
     final titleText = connectionLabel.isNotEmpty ? connectionLabel : '空间';
 
     return Scaffold(
+      backgroundColor: pageBackground,
       body: Stack(
         children: [
           CustomScrollView(
@@ -41,6 +44,9 @@ class SpacePage extends ConsumerWidget {
                 collapsedHeight: 56,
                 toolbarHeight: 56,
                 flexibleSpace: FlexibleSpaceBar(
+                  background: FrostedHeaderBackground(
+                    backgroundColor: pageBackground,
+                  ),
                   titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
                   title: CascadeTitle(
                     text: titleText,
@@ -52,7 +58,8 @@ class SpacePage extends ConsumerWidget {
                     ),
                   ),
                 ),
-                backgroundColor: colorScheme.surface.withValues(alpha: 0.85),
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
               spacesAsync.when(

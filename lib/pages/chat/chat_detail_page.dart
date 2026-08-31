@@ -13,6 +13,7 @@ import '../../providers/mutable_state.dart';
 import '../../src/rust/api/matrix.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
+import '../../widgets/liquid_glass.dart';
 import 'chat_timestamp.dart';
 import 'composer_picker_panel.dart';
 import 'date_separator.dart';
@@ -217,6 +218,12 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
   final Set<String> _lateralInsertionAnimationIds = {};
   int _messageJumpGeneration = 0;
   int _pinnedStackVisibleCount = 0;
+  bool _pinnedStackExpanded = true;
+
+  void _togglePinnedStack() {
+    if (_pinnedStackVisibleCount == 0) return;
+    setState(() => _pinnedStackExpanded = !_pinnedStackExpanded);
+  }
 
   /// True while the timeline shows a detached history slice loaded by
   /// [_loadMessageContext] instead of the live window. The slice does not
@@ -755,6 +762,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
+    if (notification.depth != 0 || notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
     final metrics = notification.metrics;
     _updateLatestMessageControl(metrics);
     _maybeLoadOlderMessages(metrics);
@@ -792,6 +802,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
   bool _handleScrollMetricsNotification(
     ScrollMetricsNotification notification,
   ) {
+    if (notification.metrics.axis != Axis.vertical) return false;
     _updateLatestMessageControl(notification.metrics);
     _maybeLoadOlderMessages(notification.metrics);
     return false;
@@ -1791,15 +1802,22 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
         ? math.max(pickerBaseHeight, _expandedPickerHeight)
         : pickerBaseHeight;
     final mediaQuery = MediaQuery.of(context);
+    final appBarHeight = mediaQuery.padding.top + kToolbarHeight;
+    final pinnedStackHeight = _pinnedStackExpanded
+        ? kPinnedMessageRowHeight * _pinnedStackVisibleCount
+        : 0.0;
+    final pinnedBottomHeight = pinnedStackHeight > 0
+        ? pinnedStackHeight + 8
+        : 0.0;
+    final headerHeight = appBarHeight + pinnedBottomHeight;
     final inputChromeHeight =
         _inputChromeHeight ??
         _baseInputChromeHeight + mediaQuery.padding.bottom;
     final pickerMaxHeight = math.max(
       pickerBaseHeight,
       mediaQuery.size.height -
-          mediaQuery.padding.top -
+          headerHeight -
           mediaQuery.padding.bottom -
-          kToolbarHeight -
           inputChromeHeight -
           8,
     );
@@ -1815,9 +1833,11 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
         : (_inputPanelMode == InputPanelMode.keyboard ? keyboardHeight : 0.0);
     final messageBottomPadding = inputChromeHeight + panelReservedHeight;
     final animatePanelChange = !keyboardVisible && !_isPickerResizing;
-    final pinnedStackHeight =
-        kPinnedMessageRowHeight * _pinnedStackVisibleCount;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final chatBackdropTint = theme.brightness == Brightness.light
+        ? colorScheme.surface
+        : theme.scaffoldBackgroundColor;
 
     if (_keepPickerDuringKeyboardOpen &&
         keyboardHeight >= pickerFullHeight - 1) {
@@ -1839,9 +1859,65 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
+        extendBodyBehindAppBar: true,
         backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: colorScheme.surface.withValues(alpha: 0.92),
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          forceMaterialTransparency: true,
+          flexibleSpace: SizedBox.expand(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final fadeStop = constraints.maxHeight <= 32
+                        ? 1.0
+                        : 32 / constraints.maxHeight;
+                    final transparentHeaderColor = chatBackdropTint.withValues(
+                      alpha: 0,
+                    );
+                    return DecoratedBox(
+                      key: const ValueKey('chat-header-transparent-gradient'),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            chatBackdropTint.withValues(alpha: 0.96),
+                            chatBackdropTint.withValues(alpha: 0.64),
+                            transparentHeaderColor,
+                          ],
+                          stops: [0, fadeStop, 1],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    8,
+                    mediaQuery.padding.top + 4,
+                    8,
+                    4,
+                  ),
+                  child: GestureDetector(
+                    key: const ValueKey('chat-header-surface-toggle'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _togglePinnedStack,
+                    child: LiquidGlassContainer(
+                      key: const ValueKey('chat-header-surface'),
+                      padding: EdgeInsets.zero,
+                      borderRadius: AppRadii.nav,
+                      blurSigma: 12,
+                      elevation: 4,
+                      child: const SizedBox.expand(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           elevation: 0,
           scrolledUnderElevation: 0,
           leading: widget.embedded
@@ -1943,12 +2019,56 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
                 },
               ),
           ],
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(pinnedBottomHeight),
+            child: SizedBox(
+              width: double.infinity,
+              height: pinnedBottomHeight,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (pinnedStackHeight > 0)
+                      SizedBox(
+                        height: 4,
+                        child: Center(
+                          child: Container(
+                            key: const ValueKey('pinned-header-handle'),
+                            width: 28,
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.35,
+                              ),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    SizedBox(
+                      height: pinnedStackHeight,
+                      child: PinnedMessagesStack(
+                        roomId: widget.roomId,
+                        onMessageTap: (messageId) =>
+                            unawaited(_jumpToMessage(messageId)),
+                        onVisibleCountChanged: (count) {
+                          if (mounted && _pinnedStackVisibleCount != count) {
+                            setState(() => _pinnedStackVisibleCount = count);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
         body: Stack(
           children: [
             Positioned.fill(child: ColoredBox(color: colorScheme.surface)),
             Positioned.fill(
-              top: pinnedStackHeight,
               child: Builder(
                 builder: (context) {
                   final messages = messageCacheOwner == activeUserId
@@ -2119,21 +2239,6 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
                 },
               ),
             ),
-            Positioned(
-              left: 0,
-              top: 0,
-              right: 0,
-              child: PinnedMessagesStack(
-                roomId: widget.roomId,
-                onMessageTap: (messageId) =>
-                    unawaited(_jumpToMessage(messageId)),
-                onVisibleCountChanged: (count) {
-                  if (mounted && _pinnedStackVisibleCount != count) {
-                    setState(() => _pinnedStackVisibleCount = count);
-                  }
-                },
-              ),
-            ),
             // Telegram-style floating date that tracks the day at the top edge
             // of the viewport while scrolling, then fades out.
             if (_hasTimelineGroups)
@@ -2142,7 +2247,8 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
                 scrollViewportKey: _scrollViewportKey,
                 boundaries: _floatingDateBoundariesCache,
                 separatorKeys: _floatingDateSeparatorKeysCache,
-                topInset: pinnedStackHeight,
+                topInset: headerHeight,
+                activationInset: headerHeight,
               ),
             AnimatedPositioned(
               right: 16,

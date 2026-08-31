@@ -12,6 +12,7 @@ import '../../providers/chat_provider.dart';
 import '../../src/rust/api/matrix.dart' as rust;
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
+import '../../widgets/frosted_header_background.dart';
 import '../settings/avatar_crop_editor_page.dart';
 import 'pinned_messages_page.dart';
 import 'room_metadata_patch.dart';
@@ -1910,7 +1911,10 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: FrostedHeaderBackground(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+        ),
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Text(

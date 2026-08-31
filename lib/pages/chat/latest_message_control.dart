@@ -119,7 +119,7 @@ class _LatestMessageControlState extends State<LatestMessageControl>
     );
   }
 
-  Widget _buildNotice(double value) {
+  Widget _buildNotice(double value, ColorScheme colors) {
     final characters = _noticeText.runes
         .map(String.fromCharCode)
         .toList(growable: false);
@@ -148,8 +148,8 @@ class _LatestMessageControlState extends State<LatestMessageControl>
                         characters[index],
                         style: TextStyle(
                           color: isViewCharacter
-                              ? AppColors.primaryVariant
-                              : AppColors.onBackground,
+                              ? colors.primary
+                              : colors.onSurface,
                           fontSize: 13.5,
                           fontWeight: isViewCharacter
                               ? FontWeight.w700
@@ -188,6 +188,7 @@ class _LatestMessageControlState extends State<LatestMessageControl>
                 end: 0.65,
               );
               final arrowExit = _intervalProgress(value, start: 0, end: 0.22);
+              final colors = Theme.of(context).colorScheme;
               return Semantics(
                 button: true,
                 label: widget.showSentNotice ? '消息已发送，查看最新消息' : '滚动到最新消息',
@@ -204,11 +205,11 @@ class _LatestMessageControlState extends State<LatestMessageControl>
                       ),
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceElevated.withValues(
+                        color: colors.surfaceContainerHigh.withValues(
                           alpha: 0.96,
                         ),
                         borderRadius: BorderRadius.circular(AppRadii.surface),
-                        border: Border.all(color: AppColors.glassBorder),
+                        border: Border.all(color: colors.outlineVariant),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(AppRadii.surface),
@@ -219,14 +220,14 @@ class _LatestMessageControlState extends State<LatestMessageControl>
                               opacity: 1 - arrowExit,
                               child: Transform.translate(
                                 offset: Offset(0, -6 * arrowExit),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.keyboard_arrow_down_rounded,
-                                  color: AppColors.onBackground,
+                                  color: colors.onSurface,
                                   size: 25,
                                 ),
                               ),
                             ),
-                            _buildNotice(value),
+                            _buildNotice(value, colors),
                           ],
                         ),
                       ),

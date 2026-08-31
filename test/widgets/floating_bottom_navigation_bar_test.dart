@@ -99,7 +99,6 @@ void main() {
     final frame = find.byKey(const ValueKey('navigation-frame'));
     final shadow = find.byKey(const ValueKey('navigation-shadow'));
     final background = find.byKey(const ValueKey('navigation-background'));
-    final indicator = find.byKey(const ValueKey('navigation-indicator'));
     final indicatorBackdrop = find.byKey(
       const ValueKey('navigation-indicator-backdrop'),
     );
@@ -126,33 +125,77 @@ void main() {
     final backgroundBox = tester.widget<DecoratedBox>(background);
     final decoration = backgroundBox.decoration as BoxDecoration;
     expect(decoration.borderRadius, BorderRadius.circular(27));
+    final navigationBackdrop = find.ancestor(
+      of: background,
+      matching: find.byType(BackdropFilter),
+    );
+    expect(navigationBackdrop, findsOneWidget);
+    final navigationBackdropFilter = tester.widget<BackdropFilter>(
+      navigationBackdrop,
+    );
+    expect(navigationBackdropFilter.filter, isNull);
+    expect(
+      navigationBackdropFilter.filterConfig?.debugShortDescription,
+      'blur(18.0, 18.0, clamp, bounded)',
+    );
     expect(
       find.byKey(const ValueKey('navigation-indicator-layer')),
       findsOneWidget,
     );
-    expect(indicatorBackdrop, findsOneWidget);
-    expect(
-      tester.widget<BackdropFilter>(indicatorBackdrop).filter,
-      isA<ImageFilter>(),
-    );
-    expect(tester.getSize(indicatorBackdrop), tester.getSize(indicator));
+    expect(indicatorBackdrop, findsNothing);
     expect(indicatorLayer.children[0], isA<Positioned>());
     expect((indicatorLayer.children[0] as Positioned).child, isA<ClipRRect>());
-    final backdropColor =
-        tester
-                .widget<DecoratedBox>(
-                  find.descendant(
-                    of: indicatorBackdrop,
-                    matching: find.byType(DecoratedBox),
-                  ),
-                )
-                .decoration
-            as BoxDecoration;
-    expect(backdropColor.color?.a, lessThan(1));
+    final indicatorTint = tester.widget<DecoratedBox>(
+      find
+          .descendant(
+            of: find.byKey(const ValueKey('navigation-indicator-layer')),
+            matching: find.byType(DecoratedBox),
+          )
+          .first,
+    );
+    final tintDecoration = indicatorTint.decoration as BoxDecoration;
+    expect(tintDecoration.color?.a, lessThan(1));
     final foreground =
         (indicatorLayer.children[1] as Positioned).child as DecoratedBox;
     final foregroundDecoration = foreground.decoration as BoxDecoration;
     expect(foregroundDecoration.color?.a, lessThan(1));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('hidden navigation bar keeps layout and blocks taps', (
+    tester,
+  ) async {
+    final controller = PageController();
+    addTearDown(controller.dispose);
+    var callbackCount = 0;
+
+    await tester.pumpWidget(
+      _app(
+        child: Scaffold(
+          body: const SizedBox.expand(),
+          bottomNavigationBar: FloatingBottomNavigationBar(
+            controller: controller,
+            currentIndex: 0,
+            onIndexChanged: (_) => callbackCount++,
+            visible: false,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final frame = find.byKey(const ValueKey('navigation-frame'));
+    final slide = find.byKey(const ValueKey('navigation-visibility-slide'));
+    final ignorePointer = tester.widget<IgnorePointer>(
+      find.ancestor(of: frame, matching: find.byType(IgnorePointer)).first,
+    );
+    expect(tester.getSize(frame).height, closeTo(54, 0.001));
+    expect(tester.widget<AnimatedSlide>(slide).offset, const Offset(0, 1.2));
+    expect(ignorePointer.ignoring, isTrue);
+
+    await tester.tapAt(tester.getCenter(frame));
+    await tester.pump();
+    expect(callbackCount, 0);
     expect(tester.takeException(), isNull);
   });
 
@@ -227,8 +270,7 @@ void main() {
     final animatedSize = tester.getSize(indicator);
     expect(animatedSize.width, lessThan(baseSize.width));
     expect(animatedSize.height, lessThan(baseSize.height));
-    expect(tester.getSize(indicatorBackdrop), animatedSize);
-    expect(tester.getRect(indicatorBackdrop), tester.getRect(indicator));
+    expect(indicatorBackdrop, findsNothing);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
@@ -243,7 +285,11 @@ void main() {
       _app(child: _NavigationHarness(controller: controller)),
     );
     final indicator = find.byKey(const ValueKey('navigation-indicator'));
+    final indicatorBackdrop = find.byKey(
+      const ValueKey('navigation-indicator-backdrop'),
+    );
     final baseSize = tester.getSize(indicator);
+    expect(indicatorBackdrop, findsNothing);
 
     final gesture = await tester.startGesture(
       tester.getCenter(find.text('空间')),
@@ -252,12 +298,14 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(indicator, findsOneWidget);
+    expect(indicatorBackdrop, findsNothing);
     final pressedSize = tester.getSize(indicator);
     expect(pressedSize, isNot(equals(baseSize)));
     expect(pressedSize.width, lessThan(baseSize.width));
 
     await gesture.up();
     await tester.pump();
+    expect(indicatorBackdrop, findsNothing);
     await tester.pump(const Duration(milliseconds: 50));
 
     final settlingSize = tester.getSize(indicator);
@@ -286,6 +334,9 @@ void main() {
     final surface = find.byKey(const ValueKey('navigation-drag-surface'));
     final frame = find.byKey(const ValueKey('navigation-frame'));
     final indicator = find.byKey(const ValueKey('navigation-indicator'));
+    final indicatorBackdrop = find.byKey(
+      const ValueKey('navigation-indicator-backdrop'),
+    );
     final frameRect = tester.getRect(frame);
     final surfaceRect = tester.getRect(surface);
     final baseRect = tester.getRect(indicator);
@@ -304,6 +355,15 @@ void main() {
     await tester.pump();
 
     expect(controller.page, closeTo(firstDrag / slotWidth, 0.001));
+    expect(indicatorBackdrop, findsOneWidget);
+    final indicatorBackdropFilter = tester.widget<BackdropFilter>(
+      indicatorBackdrop,
+    );
+    expect(indicatorBackdropFilter.filter, isNull);
+    expect(
+      indicatorBackdropFilter.filterConfig?.debugShortDescription,
+      'blur(26.0, 26.0, clamp, bounded)',
+    );
     final firstDragRect = tester.getRect(indicator);
     expect(firstDragRect.center.dx, closeTo(baseRect.center.dx + firstDrag, 1));
     expect(firstDragRect.width, greaterThan(baseRect.width));
@@ -332,6 +392,7 @@ void main() {
 
     await gesture.up();
     await tester.pump();
+    expect(indicatorBackdrop, findsNothing);
     await tester.pump(const Duration(milliseconds: 180));
 
     final reboundRect = tester.getRect(indicator);
@@ -354,15 +415,21 @@ void main() {
       _app(child: _NavigationHarness(controller: controller)),
     );
     final indicator = find.byKey(const ValueKey('navigation-indicator'));
+    final indicatorBackdrop = find.byKey(
+      const ValueKey('navigation-indicator-backdrop'),
+    );
     final baseSize = tester.getSize(indicator);
+    expect(indicatorBackdrop, findsNothing);
 
     await tester.tap(find.text('空间'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
+    expect(indicatorBackdrop, findsNothing);
     final firstStage = tester.getSize(indicator);
     expect(firstStage.height, lessThan(baseSize.height));
 
     await tester.pump(const Duration(milliseconds: 100));
+    expect(indicatorBackdrop, findsNothing);
     final secondStage = tester.getSize(indicator);
     expect(secondStage.height, greaterThan(firstStage.height));
     expect(secondStage.height, greaterThanOrEqualTo(baseSize.height));

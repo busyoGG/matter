@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'pages/chat/chat_detail_page.dart';
 import 'pages/chat/chat_page.dart';
@@ -35,6 +36,7 @@ class _MatterAppState extends ConsumerState<MatterApp> {
   bool _checkingVerification = false;
   bool _verificationDialogOpen = false;
   bool? _lastLayoutWasDesktop;
+  bool _navigationBarVisible = true;
   final Set<String> _handledVerificationFlows = {};
   rust.ChatRoom? _selectedRoom;
   rust.Space? _selectedDesktopSpace;
@@ -159,7 +161,25 @@ class _MatterAppState extends ConsumerState<MatterApp> {
     }
   }
 
+  void _setNavigationBarVisible(bool visible) {
+    if (_navigationBarVisible == visible || !mounted) return;
+    setState(() => _navigationBarVisible = visible);
+  }
+
+  bool _handleMobileUserScroll(UserScrollNotification notification) {
+    if (notification.depth != 1 || notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    if (notification.direction == ScrollDirection.reverse) {
+      _setNavigationBarVisible(false);
+    } else if (notification.direction == ScrollDirection.forward) {
+      _setNavigationBarVisible(true);
+    }
+    return false;
+  }
+
   void _onItemTapped(int index) {
+    _setNavigationBarVisible(true);
     if (ref.read(navigationIndexProvider) != index) {
       ref.read(navigationIndexProvider.notifier).value = index;
     }
@@ -458,6 +478,7 @@ class _MatterAppState extends ConsumerState<MatterApp> {
     if (_lastLayoutWasDesktop == isDesktop) return;
     _lastLayoutWasDesktop = isDesktop;
     if (isDesktop) return;
+    _navigationBarVisible = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _pageController.hasClients) {
@@ -470,19 +491,24 @@ class _MatterAppState extends ConsumerState<MatterApp> {
     final navigationIndex = ref.watch(navigationIndexProvider);
     return Scaffold(
       extendBody: true,
-      body: PageView(
-        controller: _pageController,
-        children: _pages,
-        onPageChanged: (index) {
-          if (ref.read(navigationIndexProvider) != index) {
-            ref.read(navigationIndexProvider.notifier).value = index;
-          }
-        },
+      body: NotificationListener<UserScrollNotification>(
+        onNotification: _handleMobileUserScroll,
+        child: PageView(
+          controller: _pageController,
+          children: _pages,
+          onPageChanged: (index) {
+            _setNavigationBarVisible(true);
+            if (ref.read(navigationIndexProvider) != index) {
+              ref.read(navigationIndexProvider.notifier).value = index;
+            }
+          },
+        ),
       ),
       bottomNavigationBar: FloatingBottomNavigationBar(
         controller: _pageController,
         currentIndex: navigationIndex,
         onIndexChanged: _onItemTapped,
+        visible: _navigationBarVisible,
       ),
     );
   }

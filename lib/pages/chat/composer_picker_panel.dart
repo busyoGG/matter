@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/chat_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
+import '../../widgets/liquid_glass.dart';
 import 'emoji_picker_panel.dart';
 import 'sticker_catalog.dart';
 
@@ -192,14 +193,13 @@ class _ComposerPickerPanelState extends State<ComposerPickerPanel> {
 
   Widget _buildSheet(BuildContext context, ScrollController scrollController) {
     final colors = Theme.of(context).colorScheme;
-    return Container(
-      clipBehavior: Clip.antiAlias,
+    return LiquidGlassContainer(
+      key: const ValueKey('composer-picker-surface'),
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(AppRadii.surface),
-        border: Border.all(color: colors.outlineVariant, width: 1),
-      ),
+      padding: EdgeInsets.zero,
+      borderRadius: AppRadii.surface,
+      blurSigma: 18,
+      elevation: 4,
       child: Column(
         children: [
           Padding(

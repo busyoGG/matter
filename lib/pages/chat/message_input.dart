@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1693,9 +1692,6 @@ class MessageInputState extends ConsumerState<MessageInput> {
         ? widget.panelMode
         : _lastPickerPanelMode;
     final theme = Theme.of(context);
-    final gradientColor = theme.brightness == Brightness.light
-        ? theme.colorScheme.surface
-        : theme.scaffoldBackgroundColor;
 
     final input = SafeArea(
       top: false,
@@ -1704,11 +1700,6 @@ class MessageInputState extends ConsumerState<MessageInput> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Edit bar takes precedence; otherwise show reply bar.
-            if (editing != null)
-              _buildEditingBar(editing, sendInFlight: editingSendInFlight)
-            else if (replyTo != null)
-              _buildReplyBar(replyTo),
             if (autocompleteMatch != null &&
                 (autocompleteOptions.isNotEmpty || autocompleteLoading))
               Flexible(
@@ -1725,162 +1716,221 @@ class MessageInputState extends ConsumerState<MessageInput> {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               borderRadius: AppRadii.nav,
               blurSigma: 18,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              elevation: 4,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox.square(
-                    dimension: 44,
-                    child: IconButton(
-                      icon: Icon(
-                        widget.panelMode == InputPanelMode.emoji
-                            ? Icons.keyboard_rounded
-                            : (_pickerTab == ComposerPickerTab.sticker
-                                  ? Icons.interests_rounded
-                                  : Icons.sentiment_satisfied_alt_rounded),
-                        color: widget.panelMode == InputPanelMode.emoji
-                            ? AppColors.primary
-                            : AppColors.onSurfaceVariant,
-                        size: 25,
-                      ),
-                      onPressed: sendBusy
-                          ? null
-                          : widget.panelMode == InputPanelMode.emoji
-                          ? _showKeyboard
-                          : _togglePicker,
-                      padding: EdgeInsets.zero,
+                  AnimatedSize(
+                    key: const ValueKey('message-relation-slot'),
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment.bottomCenter,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      reverseDuration: const Duration(milliseconds: 180),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        final slide = Tween<Offset>(
+                          begin: const Offset(0, 0.12),
+                          end: Offset.zero,
+                        ).animate(animation);
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(position: slide, child: child),
+                        );
+                      },
+                      child: editing != null
+                          ? Column(
+                              key: const ValueKey('message-editing-relation'),
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildEditingBar(
+                                  editing,
+                                  sendInFlight: editingSendInFlight,
+                                ),
+                                _buildRelationHandle(),
+                              ],
+                            )
+                          : replyTo != null
+                          ? Column(
+                              key: const ValueKey('message-reply-relation'),
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildReplyBar(replyTo),
+                                _buildRelationHandle(),
+                              ],
+                            )
+                          : const SizedBox(
+                              key: ValueKey('message-relation-empty'),
+                            ),
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Container(
-                      key: _textFieldKey,
-                      constraints: const BoxConstraints(
-                        minHeight: 44,
-                        maxHeight: 120,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.58),
-                        borderRadius: BorderRadius.circular(AppRadii.surface),
-                        border: Border.all(color: AppColors.glassBorder),
-                      ),
-                      child: TextField(
-                        controller: _controller,
-                        focusNode: _focusNode,
-                        readOnly: editingSourceLoading,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface,
-                          fontSize: 15,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: '消息',
-                          hintStyle: TextStyle(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontSize: 15,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      SizedBox.square(
+                        dimension: 44,
+                        child: IconButton(
+                          icon: Icon(
+                            widget.panelMode == InputPanelMode.emoji
+                                ? Icons.keyboard_rounded
+                                : (_pickerTab == ComposerPickerTab.sticker
+                                      ? Icons.interests_rounded
+                                      : Icons.sentiment_satisfied_alt_rounded),
+                            color: widget.panelMode == InputPanelMode.emoji
+                                ? AppColors.primary
+                                : AppColors.onSurfaceVariant,
+                            size: 25,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 11,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
+                          onPressed: sendBusy
+                              ? null
+                              : widget.panelMode == InputPanelMode.emoji
+                              ? _showKeyboard
+                              : _togglePicker,
+                          padding: EdgeInsets.zero,
                         ),
-                        maxLines: null,
-                        textInputAction: TextInputAction.newline,
-                        keyboardType: TextInputType.multiline,
-                        onTap: () {
-                          widget.onPanelModeChanged(InputPanelMode.keyboard);
-                        },
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  SizedBox(
-                    width: 94,
-                    height: 44,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        SizedBox.square(
-                          dimension: 44,
-                          child: Builder(
-                            builder: (buttonContext) => Tooltip(
-                              message: '附件',
-                              // Desktop hover still shows the tooltip; its
-                              // long-press trigger belongs to the InkWell so
-                              // it can open the tools menu instead.
-                              triggerMode: TooltipTriggerMode.manual,
-                              child: Material(
-                                type: MaterialType.transparency,
-                                child: InkWell(
-                                  customBorder: const CircleBorder(),
-                                  onTap: sendBusy
-                                      ? null
-                                      : _toggleAttachmentPicker,
-                                  onLongPress: sendBusy
-                                      ? null
-                                      : () => _showComposerToolsMenu(
-                                          buttonContext,
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Container(
+                          key: _textFieldKey,
+                          constraints: const BoxConstraints(
+                            minHeight: 44,
+                            maxHeight: 120,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.58),
+                            borderRadius: BorderRadius.circular(
+                              AppRadii.surface,
+                            ),
+                            border: Border.all(color: AppColors.glassBorder),
+                          ),
+                          child: TextField(
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            readOnly: editingSourceLoading,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                              fontSize: 15,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: '消息',
+                              hintStyle: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontSize: 15,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 11,
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                            ),
+                            maxLines: null,
+                            textInputAction: TextInputAction.newline,
+                            keyboardType: TextInputType.multiline,
+                            onTap: () {
+                              widget.onPanelModeChanged(
+                                InputPanelMode.keyboard,
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      SizedBox(
+                        width: 94,
+                        height: 44,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            SizedBox.square(
+                              dimension: 44,
+                              child: Builder(
+                                builder: (buttonContext) => Tooltip(
+                                  message: '附件',
+                                  // Desktop hover still shows the tooltip; its
+                                  // long-press trigger belongs to the InkWell so
+                                  // it can open the tools menu instead.
+                                  triggerMode: TooltipTriggerMode.manual,
+                                  child: Material(
+                                    type: MaterialType.transparency,
+                                    child: InkWell(
+                                      customBorder: const CircleBorder(),
+                                      onTap: sendBusy
+                                          ? null
+                                          : _toggleAttachmentPicker,
+                                      onLongPress: sendBusy
+                                          ? null
+                                          : () => _showComposerToolsMenu(
+                                              buttonContext,
+                                            ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.add_rounded,
+                                          color:
+                                              widget.panelMode ==
+                                                  InputPanelMode.attachment
+                                              ? AppColors.primary
+                                              : AppColors.onSurfaceVariant,
+                                          size: 26,
                                         ),
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.add_rounded,
-                                      color:
-                                          widget.panelMode ==
-                                              InputPanelMode.attachment
-                                          ? AppColors.primary
-                                          : AppColors.onSurfaceVariant,
-                                      size: 26,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                        AnimatedSwitcher(
-                          duration: _toolbarAnimationDuration,
-                          switchInCurve: _toolbarAnimationCurve,
-                          switchOutCurve: Curves.easeInCubic,
-                          child: _hasText
-                              ? SizedBox.square(
-                                  key: const ValueKey('send_only'),
-                                  dimension: 44,
-                                  child: IconButton(
-                                    onPressed: sendBusy ? null : _sendMessage,
-                                    padding: EdgeInsets.zero,
-                                    icon: sendBusy
-                                        ? const SizedBox.square(
-                                            dimension: 20,
-                                            child: CircularProgressIndicator(
-                                              color: AppColors.primary,
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : const Icon(
-                                            Icons.send_rounded,
-                                            color: AppColors.primary,
-                                            size: 25,
-                                          ),
-                                  ),
-                                )
-                              : SizedBox.square(
-                                  key: const ValueKey('voice_only'),
-                                  dimension: 44,
-                                  child: IconButton(
-                                    tooltip: '语音消息暂未提供',
-                                    icon: const Icon(
-                                      Icons.mic_none_rounded,
-                                      color: AppColors.onSurfaceVariant,
-                                      size: 25,
+                            AnimatedSwitcher(
+                              duration: _toolbarAnimationDuration,
+                              switchInCurve: _toolbarAnimationCurve,
+                              switchOutCurve: Curves.easeInCubic,
+                              child: _hasText
+                                  ? SizedBox.square(
+                                      key: const ValueKey('send_only'),
+                                      dimension: 44,
+                                      child: IconButton(
+                                        onPressed: sendBusy
+                                            ? null
+                                            : _sendMessage,
+                                        padding: EdgeInsets.zero,
+                                        icon: sendBusy
+                                            ? const SizedBox.square(
+                                                dimension: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: AppColors.primary,
+                                                      strokeWidth: 2,
+                                                    ),
+                                              )
+                                            : const Icon(
+                                                Icons.send_rounded,
+                                                color: AppColors.primary,
+                                                size: 25,
+                                              ),
+                                      ),
+                                    )
+                                  : SizedBox.square(
+                                      key: const ValueKey('voice_only'),
+                                      dimension: 44,
+                                      child: IconButton(
+                                        tooltip: '语音消息暂未提供',
+                                        icon: const Icon(
+                                          Icons.mic_none_rounded,
+                                          color: AppColors.onSurfaceVariant,
+                                          size: 25,
+                                        ),
+                                        onPressed: null,
+                                        padding: EdgeInsets.zero,
+                                      ),
                                     ),
-                                    onPressed: null,
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1957,29 +2007,24 @@ class MessageInputState extends ConsumerState<MessageInput> {
                 final fadeStop = constraints.maxHeight <= 32
                     ? 1.0
                     : 32 / constraints.maxHeight;
-                return ShaderMask(
-                  blendMode: BlendMode.dstIn,
-                  shaderCallback: (bounds) => LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: const [Colors.transparent, Colors.black],
-                    stops: [0, fadeStop],
-                  ).createShader(bounds),
-                  child: BackdropFilter(
-                    filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            gradientColor.withValues(alpha: 0.52),
-                            gradientColor.withValues(alpha: 0.88),
-                          ],
-                          stops: [0, fadeStop, 1],
-                        ),
-                      ),
+                final gradientColor = theme.brightness == Brightness.light
+                    ? theme.colorScheme.surface
+                    : theme.scaffoldBackgroundColor;
+                final transparentGradientColor = gradientColor.withValues(
+                  alpha: 0,
+                );
+                return DecoratedBox(
+                  key: const ValueKey('message-input-transparent-gradient'),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        transparentGradientColor,
+                        gradientColor.withValues(alpha: 0.64),
+                        gradientColor.withValues(alpha: 0.96),
+                      ],
+                      stops: [0, fadeStop, 1],
                     ),
                   ),
                 );
@@ -2057,13 +2102,29 @@ class MessageInputState extends ConsumerState<MessageInput> {
     }
   }
 
-  Widget _buildReplyBar(rust.ChatMessage replyTo) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceVariant.withValues(alpha: 0.3),
-        border: Border(left: BorderSide(color: AppColors.primary, width: 3)),
+  Widget _buildRelationHandle() {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 0, bottom: 5),
+      child: Center(
+        child: Container(
+          key: const ValueKey('message-relation-handle'),
+          width: 28,
+          height: 3,
+          decoration: BoxDecoration(
+            color: colors.onSurfaceVariant.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildReplyBar(rust.ChatMessage replyTo) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('message-reply-bar'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: Row(
         children: [
           Expanded(
@@ -2073,7 +2134,7 @@ class MessageInputState extends ConsumerState<MessageInput> {
                 Text(
                   replyTo.senderName,
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: colors.primary,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -2084,7 +2145,7 @@ class MessageInputState extends ConsumerState<MessageInput> {
                 Text(
                   replyTo.content,
                   style: TextStyle(
-                    color: AppColors.onSurfaceVariant,
+                    color: colors.onSurfaceVariant,
                     fontSize: 13,
                   ),
                   maxLines: 1,
@@ -2097,9 +2158,9 @@ class MessageInputState extends ConsumerState<MessageInput> {
             onTap: () {
               ref.read(replyingToProvider(_draftKey).notifier).value = null;
             },
-            child: const Icon(
+            child: Icon(
               Icons.close_rounded,
-              color: AppColors.onSurfaceVariant,
+              color: colors.onSurfaceVariant,
               size: 18,
             ),
           ),
@@ -2113,11 +2174,8 @@ class MessageInputState extends ConsumerState<MessageInput> {
     required bool sendInFlight,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceVariant.withValues(alpha: 0.3),
-        border: Border(left: BorderSide(color: AppColors.primary, width: 3)),
-      ),
+      key: const ValueKey('message-editing-bar'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       child: Row(
         children: [
           const Icon(Icons.edit_rounded, color: AppColors.primary, size: 16),

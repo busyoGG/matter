@@ -13,6 +13,7 @@ class AppAvatar extends ConsumerStatefulWidget {
   final String? url;
   final String fallback;
   final double radius;
+  final Clip clipBehavior;
 
   const AppAvatar({
     super.key,
@@ -20,6 +21,7 @@ class AppAvatar extends ConsumerStatefulWidget {
     this.url,
     required this.fallback,
     this.radius = AppRadii.content,
+    this.clipBehavior = Clip.antiAlias,
   });
 
   @override
@@ -98,7 +100,7 @@ class _AppAvatarState extends ConsumerState<AppAvatar> {
         color: surfaceElevated,
         borderRadius: BorderRadius.circular(widget.radius),
       ),
-      clipBehavior: Clip.antiAlias,
+      clipBehavior: widget.clipBehavior,
       child: _AuthenticatedImage(
         key: ValueKey('avatar-image:$url:${widget.size}'),
         url: url,

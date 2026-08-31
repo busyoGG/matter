@@ -644,6 +644,13 @@ void main() {
     expect(avatarRender.debugIsSticky, isTrue);
     expect(avatarRender.debugHorizontalPaintOffset, 0);
     expect(contentTransform.transform.storage[12], lessThan(0));
+    expect(
+      find.ancestor(
+        of: find.byKey(const ValueKey('message-sender-avatar')),
+        matching: find.byType(RepaintBoundary),
+      ),
+      findsAtLeastNWidgets(1),
+    );
 
     final stack = tester.widget<Stack>(
       find

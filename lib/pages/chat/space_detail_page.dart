@@ -6,6 +6,7 @@ import '../../providers/chat_provider.dart';
 import '../../src/rust/api/matrix.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
+import '../../widgets/frosted_header_background.dart';
 import '../../widgets/max_content_width.dart';
 import 'action_failure_message.dart';
 import 'chat_detail_page.dart';
@@ -99,7 +100,10 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
       return Scaffold(
         backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: colorScheme.surface,
+          backgroundColor: Colors.transparent,
+          flexibleSpace: FrostedHeaderBackground(
+            backgroundColor: colorScheme.surface,
+          ),
           elevation: 0,
           scrolledUnderElevation: 0,
           leading: IconButton(
@@ -140,7 +144,10 @@ class _SpaceDetailPageState extends ConsumerState<SpaceDetailPage> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: FrostedHeaderBackground(
+          backgroundColor: colorScheme.surface,
+        ),
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(

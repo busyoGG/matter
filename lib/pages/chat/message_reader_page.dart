@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/matrix_html/matrix_html_renderer.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/frosted_header_background.dart';
 
 /// Opens the full-screen reader for a formatted (markdown) message.
 void openMessageReader(
@@ -39,8 +40,14 @@ class MessageReaderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pageBackground = Theme.of(context).scaffoldBackgroundColor;
     return Scaffold(
+      backgroundColor: pageBackground,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        flexibleSpace: FrostedHeaderBackground(backgroundColor: pageBackground),
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text('阅读'),
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),

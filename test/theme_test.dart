@@ -2,6 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:matter/theme/app_theme.dart';
 import 'package:matter/widgets/app_card.dart';
+import 'package:matter/widgets/soft_superellipse_border.dart';
+
+void _expectSuperellipse(ShapeBorder? shape) {
+  expect(shape, isA<SoftSuperellipseBorder>());
+  expect(
+    (shape! as SoftSuperellipseBorder).exponent,
+    SoftSuperellipseBorder.defaultExponent,
+  );
+}
+
+Material _appCardMaterial(WidgetTester tester) {
+  final finder = find.byWidgetPredicate(
+    (widget) => widget is Material && widget.shape is SoftSuperellipseBorder,
+  );
+  expect(finder, findsOneWidget);
+  return tester.widget<Material>(finder);
+}
 
 void main() {
   test('defines distinct light and dark theme data', () {
@@ -14,6 +31,8 @@ void main() {
     expect(AppTheme.darkTheme.scaffoldBackgroundColor, AppColors.background);
     expect(AppTheme.lightTheme.cardTheme.color, AppColors.lightSurface);
     expect(AppTheme.darkTheme.cardTheme.color, AppColors.surface);
+    _expectSuperellipse(AppTheme.lightTheme.cardTheme.shape);
+    _expectSuperellipse(AppTheme.darkTheme.cardTheme.shape);
     expect(
       AppTheme.lightTheme.colorScheme.surfaceContainerLow,
       isNot(AppColors.surfaceElevated),
@@ -50,13 +69,9 @@ void main() {
           child: const AppCard(child: SizedBox(width: 20, height: 20)),
         ),
       );
-      final cardContainer = find.ancestor(
-        of: find.byType(SizedBox),
-        matching: find.byType(Container),
-      );
-      final container = tester.widget<Container>(cardContainer);
-      final decoration = container.decoration! as BoxDecoration;
-      expect(decoration.color, theme.colorScheme.surface);
+      final material = _appCardMaterial(tester);
+      expect(material.color, theme.colorScheme.surface);
+      _expectSuperellipse(material.shape);
     }
   });
 }

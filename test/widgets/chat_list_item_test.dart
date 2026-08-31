@@ -9,6 +9,7 @@ import 'package:matter/providers/auth_provider.dart';
 import 'package:matter/providers/chat_provider.dart';
 import 'package:matter/src/rust/api/matrix.dart';
 import 'package:matter/src/rust/frb_generated.dart';
+import 'package:matter/widgets/soft_superellipse_border.dart';
 
 class _FakeRustApi implements RustLibApi {
   int markReadCalls = 0;
@@ -91,6 +92,47 @@ void main() {
 
       expect(find.text('Room'), findsOneWidget);
       expect(find.text('Hello'), findsOneWidget);
+    });
+
+    testWidgets('uses the avatar separator and elevated info card layout', (
+      tester,
+    ) async {
+      const roomId = '!styled-room:example.org';
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: ChatListItem(room: room(id: roomId)),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('room-row-separator:$roomId')),
+        findsOneWidget,
+      );
+      final infoCard = tester.widget<Material>(
+        find.byKey(const ValueKey('room-info-card:$roomId')),
+      );
+      expect(infoCard.shape, isA<SoftSuperellipseBorder>());
+      expect(
+        (infoCard.shape! as SoftSuperellipseBorder).exponent,
+        SoftSuperellipseBorder.defaultExponent,
+      );
+      expect((infoCard.shape! as SoftSuperellipseBorder).side.width, 1.5);
+      expect(infoCard.elevation, greaterThan(0));
+      final avatarMaterial = tester.widget<Material>(
+        find.byKey(const ValueKey('room-avatar-shadow:$roomId')),
+      );
+      expect(avatarMaterial.shape, isA<SoftSuperellipseBorder>());
+      expect(
+        (avatarMaterial.shape! as SoftSuperellipseBorder).exponent,
+        SoftSuperellipseBorder.defaultExponent,
+      );
+      expect((avatarMaterial.shape! as SoftSuperellipseBorder).side.width, 1.5);
+      expect(avatarMaterial.elevation, greaterThan(0));
     });
 
     testWidgets('draft replaces the preview and clearing restores it', (

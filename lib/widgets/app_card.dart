@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
+import 'soft_superellipse_border.dart';
 
 class AppCard extends StatelessWidget {
   final Widget child;
@@ -21,29 +23,20 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = Container(
-      margin: margin,
-      padding: padding,
-      decoration: BoxDecoration(
-        color: color ?? Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
-      child: child,
+    final shape = SoftSuperellipseBorder(
+      borderRadius: BorderRadius.circular(borderRadius),
+      exponent: SoftSuperellipseBorder.defaultExponent,
+    );
+    final content = Padding(padding: padding, child: child);
+    final card = Material(
+      color: color ?? Theme.of(context).colorScheme.surface,
+      shape: shape,
+      clipBehavior: Clip.antiAlias,
+      child: onTap == null
+          ? content
+          : InkWell(customBorder: shape, onTap: onTap, child: content),
     );
 
-    if (onTap != null) {
-      return Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(borderRadius),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(borderRadius),
-          child: card,
-        ),
-      );
-    }
-
-    return card;
+    return Padding(padding: margin, child: card);
   }
 }

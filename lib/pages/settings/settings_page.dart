@@ -17,6 +17,7 @@ import '../../src/rust/api/matrix.dart' as rust;
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
 import '../../widgets/app_card.dart';
+import '../../widgets/frosted_header_background.dart';
 import 'encryption_page.dart';
 import 'log_viewer_page.dart';
 import 'profile_edit_page.dart';
@@ -635,21 +636,29 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             floating: true,
             pinned: true,
-            title: Text(
-              '设置',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: colorScheme.onSurface,
-                letterSpacing: -0.5,
+            flexibleSpace: FlexibleSpaceBar(
+              background: FrostedHeaderBackground(
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              ),
+              titlePadding: const EdgeInsets.only(left: 16, bottom: 12),
+              title: Text(
+                '设置',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.onSurface,
+                  letterSpacing: -0.5,
+                ),
               ),
             ),
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
           ),
           SliverToBoxAdapter(
             child: Padding(

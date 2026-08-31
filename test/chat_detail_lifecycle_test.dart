@@ -8,6 +8,7 @@ import 'package:matter/pages/chat/image_message_bubble.dart';
 import 'package:matter/pages/chat/latest_message_control.dart';
 import 'package:matter/pages/chat/message_insert_animation.dart';
 import 'package:matter/pages/chat/pinned_messages_page.dart';
+import 'package:matter/pages/chat/pinned_messages_stack.dart';
 import 'package:matter/pages/chat/room_metadata_patch.dart';
 import 'package:matter/pages/chat/room_management_page.dart';
 import 'package:matter/pages/chat/send_flight.dart';
@@ -15,6 +16,9 @@ import 'package:matter/providers/auth_provider.dart';
 import 'package:matter/providers/chat_provider.dart';
 import 'package:matter/src/rust/api/matrix.dart' as rust;
 import 'package:matter/src/rust/frb_generated.dart';
+import 'package:matter/theme/app_theme.dart';
+import 'package:matter/widgets/frosted_header_background.dart';
+import 'package:matter/widgets/liquid_glass.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeRustApi implements RustLibApi {
@@ -308,6 +312,165 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
+  });
+
+  testWidgets('chat header uses a transparent gradient over the AppBar', (
+    tester,
+  ) async {
+    tester.view.padding = const FakeViewPadding(top: 24);
+    addTearDown(tester.view.resetPadding);
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: ChatDetailPage(roomId: '!room:example.org', roomName: 'Room'),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final appBar = find.byType(AppBar);
+    final headerGradient = find.byKey(
+      const ValueKey('chat-header-transparent-gradient'),
+    );
+    expect(
+      find.descendant(of: appBar, matching: headerGradient),
+      findsOneWidget,
+    );
+    final headerDecoration =
+        tester.widget<DecoratedBox>(headerGradient).decoration as BoxDecoration;
+    expect(headerDecoration.gradient, isA<LinearGradient>());
+    expect(
+      find.descendant(of: appBar, matching: find.byType(GradientBackdropBlur)),
+      findsNothing,
+    );
+    expect(
+      tester.getSize(headerGradient).height,
+      closeTo(tester.getSize(appBar).height, 0.001),
+    );
+    expect(tester.widget<AppBar>(appBar).forceMaterialTransparency, isTrue);
+    final headerSurface = tester.widget<LiquidGlassContainer>(
+      find.byKey(const ValueKey('chat-header-surface')),
+    );
+    expect(headerSurface.borderRadius, AppRadii.nav);
+    expect(headerSurface.blurSigma, 12);
+    expect(headerSurface.elevation, 4);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('chat-header-surface')),
+        matching: find.byType(BackdropFilter),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('chat-header-surface')),
+        matching: find.byKey(const ValueKey('liquid-glass-shadow')),
+      ),
+      findsOneWidget,
+    );
+    final headerSurfaceRect = tester.getRect(
+      find.byKey(const ValueKey('chat-header-surface')),
+    );
+    final appBarRect = tester.getRect(appBar);
+    final topPadding = MediaQuery.paddingOf(
+      tester.element(find.byType(ChatDetailPage)),
+    ).top;
+    expect(headerSurfaceRect.top, closeTo(topPadding + 4, 0.001));
+    expect(headerSurfaceRect.bottom, closeTo(appBarRect.bottom - 4, 0.001));
+    expect(
+      find.descendant(of: appBar, matching: find.byType(BackdropFilter)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('chat header expands through pinned messages', (tester) async {
+    const roomId = '!pinned-header:example.org';
+    const userId = '@alice:example.org';
+    final pinnedMessages = [
+      _message(r'$pin-1'),
+      _message(r'$pin-2'),
+      _message(r'$pin-3'),
+      _message(r'$pin-4'),
+    ];
+    final container = ProviderContainer(
+      overrides: [
+        ignoredUserIdsProvider.overrideWith((ref) async => const <String>{}),
+        roomMembersProvider(roomId).overrideWith((ref) async => const []),
+        pinnedMessagesProvider((
+          roomId: roomId,
+          userId: userId,
+        )).overrideWith((ref) async => pinnedMessages),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.read(activeUserIdProvider.notifier).value = userId;
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: ChatDetailPage(roomId: roomId, roomName: 'Room'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final appBar = find.byType(AppBar);
+    final headerGradient = find.byKey(
+      const ValueKey('chat-header-transparent-gradient'),
+    );
+    final pinnedStack = find.byKey(const ValueKey('pinned-messages-stack'));
+    final topPadding = MediaQuery.paddingOf(
+      tester.element(find.byType(ChatDetailPage)),
+    ).top;
+    expect(find.descendant(of: appBar, matching: pinnedStack), findsOneWidget);
+    expect(find.byKey(const ValueKey('pinned-header-handle')), findsOneWidget);
+    expect(tester.getSize(pinnedStack).height, 3 * kPinnedMessageRowHeight);
+    expect(
+      tester.getSize(appBar).height,
+      closeTo(
+        topPadding + kToolbarHeight + 3 * kPinnedMessageRowHeight + 8,
+        0.001,
+      ),
+    );
+    expect(
+      tester.getSize(headerGradient).height,
+      closeTo(tester.getSize(appBar).height, 0.001),
+    );
+
+    final headerToggle = find.byKey(
+      const ValueKey('chat-header-surface-toggle'),
+    );
+    final headerRect = tester.getRect(headerToggle);
+    await tester.tapAt(Offset(headerRect.center.dx, headerRect.top + 8));
+    await tester.pump();
+
+    expect(
+      tester.getSize(appBar).height,
+      closeTo(topPadding + kToolbarHeight, 0.001),
+    );
+    expect(tester.getSize(pinnedStack).height, 0);
+    expect(find.byKey(const ValueKey('pinned-header-handle')), findsNothing);
+
+    final collapsedHeaderRect = tester.getRect(headerToggle);
+    await tester.tapAt(
+      Offset(collapsedHeaderRect.center.dx, collapsedHeaderRect.top + 8),
+    );
+    await tester.pump();
+
+    expect(tester.getSize(pinnedStack).height, 3 * kPinnedMessageRowHeight);
+    expect(
+      tester.getSize(appBar).height,
+      closeTo(
+        topPadding + kToolbarHeight + 3 * kPinnedMessageRowHeight + 8,
+        0.001,
+      ),
+    );
+    expect(find.byKey(const ValueKey('pinned-header-handle')), findsOneWidget);
   });
 
   testWidgets('switching away and back restores live room view ownership', (

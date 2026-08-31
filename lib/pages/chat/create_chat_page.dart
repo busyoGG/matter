@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../src/rust/api/matrix.dart' as rust;
 import '../../theme/app_theme.dart';
+import '../../widgets/frosted_header_background.dart';
 import '../../widgets/max_content_width.dart';
 
 class CreateChatPage extends ConsumerStatefulWidget {
@@ -306,7 +307,10 @@ class _CreateChatPageState extends ConsumerState<CreateChatPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: FrostedHeaderBackground(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+        ),
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
