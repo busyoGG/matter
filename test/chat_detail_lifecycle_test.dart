@@ -390,7 +390,8 @@ void main() {
   testWidgets('chat header expands through pinned messages', (tester) async {
     const roomId = '!pinned-header:example.org';
     const userId = '@alice:example.org';
-    final pinnedMessages = [
+    SharedPreferences.setMockInitialValues({});
+    var pinnedMessages = [
       _message(r'$pin-1'),
       _message(r'$pin-2'),
       _message(r'$pin-3'),
@@ -448,6 +449,14 @@ void main() {
     final headerRect = tester.getRect(headerToggle);
     await tester.tapAt(Offset(headerRect.center.dx, headerRect.top + 8));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+    final collapsingHeight = tester.getSize(appBar).height;
+    expect(collapsingHeight, greaterThan(topPadding + kToolbarHeight));
+    expect(
+      collapsingHeight,
+      lessThan(topPadding + kToolbarHeight + 3 * kPinnedMessageRowHeight + 8),
+    );
+    await tester.pumpAndSettle();
 
     expect(
       tester.getSize(appBar).height,
@@ -455,12 +464,34 @@ void main() {
     );
     expect(tester.getSize(pinnedStack).height, 0);
     expect(find.byKey(const ValueKey('pinned-header-handle')), findsNothing);
+    final preferences = await SharedPreferences.getInstance();
+    expect(
+      preferences.getBool('chat_pinned_stack_expanded:$userId:$roomId'),
+      isFalse,
+    );
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: KeyedSubtree(
+            key: const ValueKey('second-chat-page'),
+            child: const ChatDetailPage(roomId: roomId, roomName: 'Room'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(find.byType(AppBar)).height,
+      closeTo(topPadding + kToolbarHeight, 0.001),
+    );
 
     final collapsedHeaderRect = tester.getRect(headerToggle);
     await tester.tapAt(
       Offset(collapsedHeaderRect.center.dx, collapsedHeaderRect.top + 8),
     );
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(tester.getSize(pinnedStack).height, 3 * kPinnedMessageRowHeight);
     expect(
@@ -471,6 +502,65 @@ void main() {
       ),
     );
     expect(find.byKey(const ValueKey('pinned-header-handle')), findsOneWidget);
+  });
+
+  testWidgets('a newly pinned message re-expands the collapsed stack', (
+    tester,
+  ) async {
+    const roomId = '!new-pinned-header:example.org';
+    const userId = '@alice:example.org';
+    SharedPreferences.setMockInitialValues({
+      'chat_pinned_stack_expanded:$userId:$roomId': false,
+      'chat_pinned_stack_ids:$userId:$roomId': [r'$pin-1'],
+    });
+    var pinnedMessages = [_message(r'$pin-1')];
+    final container = ProviderContainer(
+      overrides: [
+        ignoredUserIdsProvider.overrideWith((ref) async => const <String>{}),
+        roomMembersProvider(roomId).overrideWith((ref) async => const []),
+        pinnedMessagesProvider((
+          roomId: roomId,
+          userId: userId,
+        )).overrideWith((ref) async => pinnedMessages),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.read(activeUserIdProvider.notifier).value = userId;
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: ChatDetailPage(roomId: roomId, roomName: 'Room'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(find.byType(AppBar)).height,
+      closeTo(
+        MediaQuery.paddingOf(tester.element(find.byType(ChatDetailPage))).top +
+            kToolbarHeight,
+        0.001,
+      ),
+    );
+
+    pinnedMessages = [_message(r'$pin-1'), _message(r'$pin-2')];
+    container.invalidate(
+      pinnedMessagesProvider((roomId: roomId, userId: userId)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getSize(find.byType(AppBar)).height,
+      closeTo(
+        MediaQuery.paddingOf(tester.element(find.byType(ChatDetailPage))).top +
+            kToolbarHeight +
+            2 * kPinnedMessageRowHeight +
+            8,
+        0.001,
+      ),
+    );
   });
 
   testWidgets('switching away and back restores live room view ownership', (

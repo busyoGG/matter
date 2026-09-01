@@ -17,12 +17,14 @@ class PinnedMessagesStack extends ConsumerStatefulWidget {
   final String roomId;
   final ValueChanged<String> onMessageTap;
   final ValueChanged<int>? onVisibleCountChanged;
+  final ValueChanged<List<String>>? onPinnedMessageIdsChanged;
 
   const PinnedMessagesStack({
     super.key,
     required this.roomId,
     required this.onMessageTap,
     this.onVisibleCountChanged,
+    this.onPinnedMessageIdsChanged,
   });
 
   @override
@@ -35,6 +37,7 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
   final Set<String> _unpinningMessageIds = {};
   final Map<String, Timer> _hiddenExpiryTimers = {};
   int _reportedVisibleCount = -1;
+  List<String>? _reportedPinnedMessageIds;
 
   RoomAccountKey _providerKey(String userId) =>
       (roomId: widget.roomId, userId: userId);
@@ -52,6 +55,7 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
         _hiddenMessageIds.clear();
         _unpinningMessageIds.clear();
         _reportedVisibleCount = -1;
+        _reportedPinnedMessageIds = null;
       });
     });
   }
@@ -61,6 +65,24 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
     _reportedVisibleCount = count;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) widget.onVisibleCountChanged?.call(count);
+    });
+  }
+
+  void _reportPinnedMessageIds(List<String> ids) {
+    final previous = _reportedPinnedMessageIds;
+    if (previous != null && previous.length == ids.length) {
+      var unchanged = true;
+      for (var index = 0; index < ids.length; index++) {
+        if (previous[index] != ids[index]) {
+          unchanged = false;
+          break;
+        }
+      }
+      if (unchanged) return;
+    }
+    _reportedPinnedMessageIds = List.unmodifiable(ids);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onPinnedMessageIdsChanged?.call(ids);
     });
   }
 
@@ -121,6 +143,7 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
     final activeUserId = ref.watch(activeUserIdProvider);
     if (activeUserId == null) {
       _reportVisibleCount(0);
+      _reportPinnedMessageIds(const []);
       return const SizedBox.shrink();
     }
     final pinnedAsync = ref.watch(
@@ -130,7 +153,12 @@ class _PinnedMessagesStackState extends ConsumerState<PinnedMessagesStack> {
     final messages = pinnedAsync.value
         ?.where((message) => !_hiddenMessageIds.contains(message.id))
         .toList();
-    if (messages == null || messages.isEmpty) {
+    if (messages == null) {
+      _reportVisibleCount(0);
+      return const SizedBox.shrink();
+    }
+    _reportPinnedMessageIds(messages.map((message) => message.id).toList());
+    if (messages.isEmpty) {
       _reportVisibleCount(0);
       return const SizedBox.shrink();
     }

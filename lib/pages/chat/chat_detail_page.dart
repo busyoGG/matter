@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/message_cache_persistence.dart';
@@ -130,7 +131,7 @@ class ChatDetailPage extends ConsumerStatefulWidget {
 }
 
 class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
-    with RouteAware, WidgetsBindingObserver {
+    with RouteAware, WidgetsBindingObserver, SingleTickerProviderStateMixin {
   /// Monotonic counter for room activations across page instances. The
   /// dispose microtask clears the global current-room only when THIS page
   /// still holds the latest activation: a re-push of the same room during
@@ -142,6 +143,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
   int _activationId = 0;
 
   final _scrollController = ScrollController();
+  late final AnimationController _pinnedStackExpansionController;
   final _scrollViewportKey = GlobalKey();
   final _messageInputKey = GlobalKey<MessageInputState>();
   final Map<String, GlobalKey> _messageAnchorKeys = {};
@@ -219,10 +221,127 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
   int _messageJumpGeneration = 0;
   int _pinnedStackVisibleCount = 0;
   bool _pinnedStackExpanded = true;
+  bool _pinnedStackExpansionLoaded = false;
+  bool _pinnedStackExpansionChangedDuringLoad = false;
+  int _pinnedStackExpansionLoadGeneration = 0;
+  Set<String> _knownPinnedMessageIds = {};
+  bool _hasPinnedMessageSnapshot = false;
+  List<String>? _pendingPinnedMessageIds;
+
+  String _pinnedStackExpansionPreferenceKey(String accountUserId) =>
+      'chat_pinned_stack_expanded:$accountUserId:${widget.roomId}';
+
+  String _pinnedStackMessageIdsPreferenceKey(String accountUserId) =>
+      'chat_pinned_stack_ids:$accountUserId:${widget.roomId}';
+
+  void _handlePinnedStackAnimationTick() {
+    if (mounted) setState(() {});
+  }
+
+  void _animatePinnedStackExpansion(bool expanded) {
+    if (!_pinnedStackExpansionLoaded) {
+      _pinnedStackExpansionChangedDuringLoad = true;
+    }
+    setState(() => _pinnedStackExpanded = expanded);
+    unawaited(
+      _pinnedStackExpansionController.animateTo(
+        expanded ? 1 : 0,
+        curve: Curves.easeInOutCubic,
+      ),
+    );
+    unawaited(_persistPinnedStackExpansion(expanded));
+  }
+
+  Future<void> _loadPinnedStackExpansion(String? accountUserId) async {
+    final generation = ++_pinnedStackExpansionLoadGeneration;
+    _pinnedStackExpansionLoaded = false;
+    _pinnedStackExpansionChangedDuringLoad = false;
+    if (accountUserId == null) {
+      if (mounted && generation == _pinnedStackExpansionLoadGeneration) {
+        _pinnedStackExpansionController.stop();
+        _pinnedStackExpansionController.value = 1;
+        setState(() {
+          _pinnedStackExpanded = true;
+          _pinnedStackExpansionLoaded = true;
+          _knownPinnedMessageIds = {};
+          _hasPinnedMessageSnapshot = false;
+        });
+      }
+      return;
+    }
+    final preferences = await SharedPreferences.getInstance();
+    final expanded =
+        preferences.getBool(
+          _pinnedStackExpansionPreferenceKey(accountUserId),
+        ) ??
+        true;
+    final storedIds = preferences
+        .getStringList(_pinnedStackMessageIdsPreferenceKey(accountUserId))
+        ?.toSet();
+    if (!mounted ||
+        generation != _pinnedStackExpansionLoadGeneration ||
+        ref.read(activeUserIdProvider) != accountUserId) {
+      return;
+    }
+    final pendingIds = _pendingPinnedMessageIds;
+    final preserveUserChoice = _pinnedStackExpansionChangedDuringLoad;
+    if (!preserveUserChoice) {
+      _pinnedStackExpansionController.stop();
+      _pinnedStackExpansionController.value = expanded ? 1 : 0;
+    }
+    setState(() {
+      _pinnedStackExpanded = preserveUserChoice
+          ? _pinnedStackExpanded
+          : expanded;
+      _pinnedStackExpansionLoaded = true;
+      _knownPinnedMessageIds = storedIds ?? {};
+      _hasPinnedMessageSnapshot = storedIds != null;
+      _pendingPinnedMessageIds = null;
+    });
+    if (pendingIds != null) _handlePinnedMessageIdsChanged(pendingIds);
+  }
+
+  Future<void> _persistPinnedStackExpansion(bool expanded) async {
+    final accountUserId = ref.read(activeUserIdProvider);
+    if (accountUserId == null) return;
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool(
+      _pinnedStackExpansionPreferenceKey(accountUserId),
+      expanded,
+    );
+  }
+
+  Future<void> _persistPinnedStackMessageIds(Set<String> ids) async {
+    final accountUserId = ref.read(activeUserIdProvider);
+    if (accountUserId == null) return;
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setStringList(
+      _pinnedStackMessageIdsPreferenceKey(accountUserId),
+      ids.toList(),
+    );
+  }
 
   void _togglePinnedStack() {
     if (_pinnedStackVisibleCount == 0) return;
-    setState(() => _pinnedStackExpanded = !_pinnedStackExpanded);
+    _animatePinnedStackExpansion(!_pinnedStackExpanded);
+  }
+
+  void _handlePinnedMessageIdsChanged(List<String> ids) {
+    if (!_pinnedStackExpansionLoaded) {
+      _pendingPinnedMessageIds = List.unmodifiable(ids);
+      return;
+    }
+    final currentIds = ids.toSet();
+    final hasNewPin =
+        _hasPinnedMessageSnapshot &&
+        currentIds.any(
+          (messageId) => !_knownPinnedMessageIds.contains(messageId),
+        );
+    _knownPinnedMessageIds = currentIds;
+    _hasPinnedMessageSnapshot = true;
+    unawaited(_persistPinnedStackMessageIds(currentIds));
+    if (!hasNewPin || _pinnedStackExpanded) return;
+    _animatePinnedStackExpansion(true);
   }
 
   /// True while the timeline shows a detached history slice loaded by
@@ -262,6 +381,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
   static const Duration _sendFlightBurstSuppression = Duration(
     milliseconds: 450,
   );
+  static const Duration _pinnedStackExpansionDuration = Duration(
+    milliseconds: 240,
+  );
   DateTime _sendFlightSuppressedUntil = DateTime.fromMillisecondsSinceEpoch(0);
 
   void _setInputPanelMode(InputPanelMode mode) {
@@ -287,6 +409,11 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
   @override
   void initState() {
     super.initState();
+    _pinnedStackExpansionController = AnimationController(
+      vsync: this,
+      duration: _pinnedStackExpansionDuration,
+      value: 1,
+    )..addListener(_handlePinnedStackAnimationTick);
     widget.onRegisterRoomDetailsHandler?.call(_handleRoomDetailsChanged);
     WidgetsBinding.instance.addObserver(this);
     _roomName = widget.roomName;
@@ -295,6 +422,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
     _avatarEventId = widget.avatarEventId;
     _currentRoomIdNotifier = ref.read(currentRoomIdProvider.notifier);
     final roomAccountKey = activeRoomAccountKey(ref, widget.roomId);
+    unawaited(_loadPinnedStackExpansion(ref.read(activeUserIdProvider)));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.read(replyingToProvider(roomAccountKey).notifier).value = null;
@@ -307,8 +435,14 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
     // matches, so reset it first. Switching to another account (defense in
     // depth: navigation usually already deactivates) drops the view
     // ownership so no auto-read or subscription runs under the new account.
-    ref.listenManual(activeUserIdProvider, (_, next) {
+    ref.listenManual(activeUserIdProvider, (previous, next) {
       if (!mounted) return;
+      if (previous != next) {
+        _knownPinnedMessageIds = {};
+        _hasPinnedMessageSnapshot = false;
+        _pendingPinnedMessageIds = null;
+        unawaited(_loadPinnedStackExpansion(next));
+      }
       if (_subscriptionsAccount == null && next != null) {
         // Opened before login completed: adopt the first account and
         // activate under it (same as the management/pinned pages), instead
@@ -357,6 +491,12 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
   @override
   void didUpdateWidget(covariant ChatDetailPage oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.roomId != widget.roomId) {
+      _knownPinnedMessageIds = {};
+      _hasPinnedMessageSnapshot = false;
+      _pendingPinnedMessageIds = null;
+      unawaited(_loadPinnedStackExpansion(ref.read(activeUserIdProvider)));
+    }
     if (oldWidget.roomName != widget.roomName) {
       _roomName = widget.roomName;
     }
@@ -725,6 +865,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
     _pickerResizeTimer?.cancel();
     _sentNoticeTimer?.cancel();
     _forwardNoticeTimer?.cancel();
+    _pinnedStackExpansionController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -1803,9 +1944,10 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
         : pickerBaseHeight;
     final mediaQuery = MediaQuery.of(context);
     final appBarHeight = mediaQuery.padding.top + kToolbarHeight;
-    final pinnedStackHeight = _pinnedStackExpanded
-        ? kPinnedMessageRowHeight * _pinnedStackVisibleCount
-        : 0.0;
+    final pinnedStackHeight =
+        kPinnedMessageRowHeight *
+        _pinnedStackVisibleCount *
+        _pinnedStackExpansionController.value;
     final pinnedBottomHeight = pinnedStackHeight > 0
         ? pinnedStackHeight + 8
         : 0.0;
@@ -2057,6 +2199,8 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
                             setState(() => _pinnedStackVisibleCount = count);
                           }
                         },
+                        onPinnedMessageIdsChanged:
+                            _handlePinnedMessageIdsChanged,
                       ),
                     ),
                   ],
