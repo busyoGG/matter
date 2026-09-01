@@ -272,7 +272,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
     unawaited(
       _pinnedStackExpansionController.animateTo(
         expanded ? 1 : 0,
-        curve: Curves.easeInOutCubic,
+        curve: Curves.easeOutCubic,
       ),
     );
     unawaited(_persistPinnedStackExpansion(expanded));
@@ -408,7 +408,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
     milliseconds: 450,
   );
   static const Duration _pinnedStackExpansionDuration = Duration(
-    milliseconds: 240,
+    milliseconds: 180,
   );
   DateTime _sendFlightSuppressedUntil = DateTime.fromMillisecondsSinceEpoch(0);
 
