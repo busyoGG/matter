@@ -11,9 +11,11 @@ import '../../providers/chat_provider.dart';
 import '../../providers/message_cache_persistence.dart';
 import '../../providers/message_ordering.dart';
 import '../../providers/mutable_state.dart';
+import '../../providers/room_background_provider.dart';
 import '../../src/rust/api/matrix.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
+import '../../widgets/home_background_image.dart';
 import '../../widgets/liquid_glass.dart';
 import 'chat_timestamp.dart';
 import 'composer_picker_panel.dart';
@@ -1938,6 +1940,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
         membersAsync.asData?.value.length ?? cachedTotalMembers;
     ref.watch(typingStreamProvider);
     final roomAccountKey = activeRoomAccountKey(ref, widget.roomId);
+    final roomBackground = ref.watch(roomBackgroundProvider(roomAccountKey));
     final localOutgoingMessages = ref.watch(
       localOutgoingMessagesProvider(roomAccountKey),
     );
@@ -2271,6 +2274,14 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage>
         body: Stack(
           children: [
             Positioned.fill(child: ColoredBox(color: colorScheme.surface)),
+            if (roomBackground.path case final path?)
+              Positioned.fill(
+                child: HomeBackgroundImage(
+                  key: const ValueKey('room-background-image'),
+                  path: path,
+                  fallbackColor: colorScheme.surface,
+                ),
+              ),
             Positioned.fill(
               child: Builder(
                 builder: (context) {

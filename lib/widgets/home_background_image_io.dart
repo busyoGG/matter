@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 class HomeBackgroundImage extends StatelessWidget {
   final String path;
   final double opacity;
+  final Color? fallbackColor;
 
   const HomeBackgroundImage({
     super.key,
     required this.path,
     this.opacity = 1.0,
+    this.fallbackColor,
   });
 
   @override
@@ -17,7 +19,8 @@ class HomeBackgroundImage extends StatelessWidget {
     File(path),
     fit: BoxFit.cover,
     opacity: AlwaysStoppedAnimation(opacity),
-    errorBuilder: (context, error, stackTrace) =>
-        ColoredBox(color: Theme.of(context).scaffoldBackgroundColor),
+    errorBuilder: (context, error, stackTrace) => ColoredBox(
+      color: fallbackColor ?? Theme.of(context).scaffoldBackgroundColor,
+    ),
   );
 }

@@ -328,6 +328,9 @@ void main() {
     expect(find.text('无法加载加入请求'), findsOneWidget);
     expect(find.text('通知设置加载/更新失败，点击重试'), findsOneWidget);
     expect(find.text('无法加载已忽略用户'), findsOneWidget);
+    expect(find.text('聊天背景'), findsOneWidget);
+    expect(find.text('自定义聊天背景'), findsOneWidget);
+    expect(find.text('未设置'), findsOneWidget);
     expect(find.text('成员 0'), findsNothing);
     expect(find.text('已忽略用户 (0)'), findsNothing);
   });

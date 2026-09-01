@@ -14,10 +14,12 @@ import 'package:matter/pages/chat/room_management_page.dart';
 import 'package:matter/pages/chat/send_flight.dart';
 import 'package:matter/providers/auth_provider.dart';
 import 'package:matter/providers/chat_provider.dart';
+import 'package:matter/providers/room_background_provider.dart';
 import 'package:matter/src/rust/api/matrix.dart' as rust;
 import 'package:matter/src/rust/frb_generated.dart';
 import 'package:matter/theme/app_theme.dart';
 import 'package:matter/widgets/frosted_header_background.dart';
+import 'package:matter/widgets/home_background_image.dart';
 import 'package:matter/widgets/liquid_glass.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -312,6 +314,31 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
+  });
+
+  testWidgets('chat detail loads the background for its room and account', (
+    tester,
+  ) async {
+    const key = (roomId: '!room:example.org', userId: '@alice:example.org');
+    SharedPreferences.setMockInitialValues({
+      roomBackgroundPreferenceKey(key): '/tmp/room-background.jpg',
+    });
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container.read(activeUserIdProvider.notifier).value = '@alice:example.org';
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: ChatDetailPage(roomId: '!room:example.org', roomName: 'Room'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('room-background-image')), findsOneWidget);
+    expect(find.byType(HomeBackgroundImage), findsOneWidget);
   });
 
   testWidgets('chat header uses a transparent gradient over the AppBar', (

@@ -1,14 +1,16 @@
 import 'dart:async';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'action_failure_message.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
+import '../../providers/room_background_provider.dart';
 import '../../src/rust/api/matrix.dart' as rust;
 import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
@@ -56,6 +58,7 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
   final _roomTopicEdit = RoomStateEditTracker();
   rust.RoomDetails? _details;
   Uint8List? _avatarPreviewBytes;
+  bool _backgroundBusy = false;
   List<rust.Contact> _members = const [];
   List<String> _ignoredUsers = const [];
 
@@ -1033,6 +1036,75 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
     }
   }
 
+  RoomAccountKey _backgroundKey() => (
+    roomId: widget.roomId,
+    userId: _openedUserId ?? ref.read(activeUserIdProvider) ?? 'anonymous',
+  );
+
+  String _backgroundExtensionOf(String name) {
+    final dot = name.lastIndexOf('.');
+    if (dot < 0 || dot == name.length - 1) return 'jpg';
+    final extension = name.substring(dot + 1).toLowerCase();
+    return const {
+          'jpg',
+          'jpeg',
+          'png',
+          'webp',
+          'heic',
+          'heif',
+        }.contains(extension)
+        ? extension
+        : 'jpg';
+  }
+
+  Future<void> _pickBackground() async {
+    if (!_accountActive() || _backgroundBusy) return;
+    if (kIsWeb) {
+      _showSnackBar('当前平台不支持本地聊天背景');
+      return;
+    }
+    setState(() => _backgroundBusy = true);
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 90,
+      );
+      if (picked == null) return;
+      await ref
+          .read(roomBackgroundProvider(_backgroundKey()).notifier)
+          .setBackground(
+            await picked.readAsBytes(),
+            extension: _backgroundExtensionOf(picked.name),
+          );
+      if (mounted && _accountActive()) _showSnackBar('聊天背景已更新');
+    } on UnsupportedError {
+      _showSnackBar('当前平台不支持本地聊天背景');
+    } on MissingPluginException {
+      _showSnackBar('当前平台不支持选择图片');
+    } catch (error) {
+      if (mounted && _accountActive()) _showSnackBar('保存聊天背景失败：$error');
+    } finally {
+      if (mounted) setState(() => _backgroundBusy = false);
+    }
+  }
+
+  Future<void> _clearBackground() async {
+    if (!_accountActive() || _backgroundBusy) return;
+    setState(() => _backgroundBusy = true);
+    try {
+      await ref
+          .read(roomBackgroundProvider(_backgroundKey()).notifier)
+          .clearBackground();
+      if (mounted && _accountActive()) _showSnackBar('聊天背景已清除');
+    } catch (error) {
+      if (mounted && _accountActive()) _showSnackBar('清除聊天背景失败：$error');
+    } finally {
+      if (mounted) setState(() => _backgroundBusy = false);
+    }
+  }
+
   Future<void> _pickAvatar() async {
     if (!_accountActive()) return;
     if (_saving) return;
@@ -1876,6 +1948,12 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
     // account-data and lag-compensation invalidations even when this page is
     // tested or presented outside the usual app shell.
     ref.watch(syncStreamProvider);
+    final activeUserId = ref.watch(activeUserIdProvider);
+    final roomBackgroundKey = (
+      roomId: widget.roomId,
+      userId: _openedUserId ?? activeUserId ?? 'anonymous',
+    );
+    final roomBackground = ref.watch(roomBackgroundProvider(roomBackgroundKey));
     final details = _details;
     final knockRequestsAsync = ref.watch(
       roomKnockRequestsProvider(widget.roomId),
@@ -2034,6 +2112,49 @@ class _RoomManagementPageState extends ConsumerState<RoomManagementPage> {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  SliverToBoxAdapter(
+                    child: _section(
+                      title: '聊天背景',
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        onTap: _backgroundBusy ? null : _pickBackground,
+                        leading: const Icon(Icons.wallpaper_rounded),
+                        title: const Text('自定义聊天背景'),
+                        subtitle: Text(
+                          roomBackground.path == null ? '未设置' : '已设置本地背景',
+                        ),
+                        trailing: _backgroundBusy
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (roomBackground.path != null)
+                                    IconButton(
+                                      tooltip: '清除聊天背景',
+                                      onPressed: _clearBackground,
+                                      icon: const Icon(
+                                        Icons.delete_outline_rounded,
+                                      ),
+                                    ),
+                                  IconButton(
+                                    tooltip: '选择聊天背景',
+                                    onPressed: _pickBackground,
+                                    icon: const Icon(
+                                      Icons.photo_library_outlined,
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
                   ),
