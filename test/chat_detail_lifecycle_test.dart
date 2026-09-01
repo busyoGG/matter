@@ -462,8 +462,15 @@ void main() {
       tester.getSize(appBar).height,
       closeTo(topPadding + kToolbarHeight, 0.001),
     );
-    expect(tester.getSize(pinnedStack).height, 0);
-    expect(find.byKey(const ValueKey('pinned-header-handle')), findsNothing);
+    expect(
+      tester
+          .getSize(
+            find.byKey(const ValueKey('pinned-header-animated-viewport')),
+          )
+          .height,
+      0,
+    );
+    expect(find.byKey(const ValueKey('pinned-header-handle')), findsOneWidget);
     final preferences = await SharedPreferences.getInstance();
     expect(
       preferences.getBool('chat_pinned_stack_expanded:$userId:$roomId'),
