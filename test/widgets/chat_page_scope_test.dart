@@ -8,6 +8,8 @@ import 'package:matter/pages/chat/chat_page.dart';
 import 'package:matter/pages/chat/search_bar.dart';
 import 'package:matter/providers/chat_provider.dart';
 import 'package:matter/widgets/frosted_header_background.dart';
+import 'package:matter/widgets/home_background.dart';
+import 'package:matter/widgets/soft_superellipse_border.dart';
 import 'package:matter/src/rust/api/matrix.dart';
 
 void _expectNoRegionRepaintBoundary() {
@@ -20,18 +22,23 @@ void _expectNoRegionRepaintBoundary() {
 }
 
 void _expectHeaderVisualPath({int componentCount = 1}) {
+  final header = find.byType(GradientFrostedHeaderBackground);
+  final headerBlur = find.descendant(
+    of: header,
+    matching: find.byType(GradientBackdropBlur),
+  );
   expect(
-    find.ancestor(
-      of: find.byType(BackdropFilter),
-      matching: find.byType(StretchEffect),
-    ),
+    find.ancestor(of: headerBlur, matching: find.byType(StretchEffect)),
     findsNothing,
   );
   expect(find.byType(ShaderMask), findsNothing);
   final expectedFilterCount = ui.ImageFilter.isShaderFilterSupported
       ? componentCount * 5
       : componentCount;
-  expect(find.byType(BackdropFilter), findsNWidgets(expectedFilterCount));
+  expect(
+    find.descendant(of: headerBlur, matching: find.byType(BackdropFilter)),
+    findsNWidgets(expectedFilterCount),
+  );
   _expectNoRegionRepaintBoundary();
 }
 
@@ -96,6 +103,11 @@ void main() {
 
     expect(find.text('Alice'), findsOneWidget);
     expect(find.text('General'), findsNothing);
+    final fab = tester.widget<FloatingActionButton>(
+      find.byType(FloatingActionButton),
+    );
+    final shape = fab.shape! as SoftSuperellipseBorder;
+    expect(shape.borderRadius, BorderRadius.circular(18));
   });
 
   testWidgets('space scope shows only the selected space rooms', (
@@ -170,6 +182,10 @@ void main() {
         findsOneWidget,
       );
       expect(
+        find.descendant(of: header, matching: find.byType(StretchEffect)),
+        findsNothing,
+      );
+      expect(
         find.byKey(const ValueKey('header-status-bar-surface-guard')),
         findsNothing,
       );
@@ -179,6 +195,12 @@ void main() {
       expect(titleRect.bottom, lessThanOrEqualTo(80));
       final searchRect = tester.getRect(searchBar);
       expect(searchRect.top, closeTo(80, 0.001));
+      final fab = tester.widget<FloatingActionButton>(
+        find.byType(FloatingActionButton),
+      );
+      expect(fab.shape, isA<SoftSuperellipseBorder>());
+      final shape = fab.shape! as SoftSuperellipseBorder;
+      expect(shape.borderRadius, BorderRadius.circular(24));
       _expectHeaderVisualPath();
     },
   );
@@ -210,6 +232,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
+    final homeBackground = find.byType(HomeBackgroundPage);
+    expect(homeBackground, findsOneWidget);
+    expect(
+      find.descendant(of: homeBackground, matching: find.byType(PageView)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: homeBackground, matching: find.byType(BackdropGroup)),
+      findsOneWidget,
+    );
     final scrollView = find.byType(CustomScrollView);
     final navigationSlide = find.byKey(
       const ValueKey('navigation-visibility-slide'),

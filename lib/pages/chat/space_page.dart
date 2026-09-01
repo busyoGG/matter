@@ -10,6 +10,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
 import '../../widgets/cascade_title.dart';
 import '../../widgets/frosted_header_background.dart';
+import '../../widgets/home_background.dart';
 import 'chat_list_item.dart';
 import 'space_detail_page.dart';
 
@@ -32,7 +33,7 @@ class SpacePage extends ConsumerWidget {
     final titleText = connectionLabel.isNotEmpty ? connectionLabel : '空间';
 
     return Scaffold(
-      backgroundColor: pageBackground,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           CustomScrollView(
@@ -540,53 +541,54 @@ class _SpaceRoomTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final shape = homeCardShape(borderRadius: AppRadii.surface);
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.surface),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => SpaceDetailPage(space: space)),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(AppRadii.surface),
-          ),
-          child: Row(
-            children: [
-              AppAvatar(fallback: space.name, size: 48, url: space.avatarUrl),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      space.name,
-                      style: TextStyle(
-                        color: colorScheme.onSurface,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+      child: HomeBackdropCard(
+        shape: shape,
+        color: homeCardSurfaceColor(context, colorScheme.surface),
+        child: InkWell(
+          customBorder: shape,
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => SpaceDetailPage(space: space)),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                AppAvatar(fallback: space.name, size: 48, url: space.avatarUrl),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        space.name,
+                        style: TextStyle(
+                          color: colorScheme.onSurface,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '查看房间、成员和空间设置',
-                      style: TextStyle(
-                        color: colorScheme.onSurfaceVariant,
-                        fontSize: 13,
+                      const SizedBox(height: 4),
+                      Text(
+                        '查看房间、成员和空间设置',
+                        style: TextStyle(
+                          color: colorScheme.onSurfaceVariant,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ],
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -608,37 +610,38 @@ class _SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final shape = homeCardShape(borderRadius: AppRadii.surface);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(AppRadii.surface),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                color: colorScheme.onSurface,
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
+      child: HomeBackdropCard(
+        shape: shape,
+        color: homeCardSurfaceColor(context, colorScheme.surfaceContainerHigh),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: colorScheme.onSurface,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: colorScheme.onSurfaceVariant,
-                fontSize: 13,
-                height: 1.35,
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                  height: 1.35,
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
-            child,
-          ],
+              const SizedBox(height: 14),
+              child,
+            ],
+          ),
         ),
       ),
     );

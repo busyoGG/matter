@@ -19,6 +19,7 @@ import 'src/rust/api/matrix.dart' as rust;
 import 'theme/app_theme.dart';
 import 'widgets/app_avatar.dart';
 import 'widgets/floating_bottom_navigation_bar.dart';
+import 'widgets/home_background.dart';
 import 'widgets/max_content_width.dart';
 
 enum _DesktopRoomSource { directMessages, ungroupedRooms, space }
@@ -491,17 +492,19 @@ class _MatterAppState extends ConsumerState<MatterApp> {
     final navigationIndex = ref.watch(navigationIndexProvider);
     return Scaffold(
       extendBody: true,
-      body: NotificationListener<UserScrollNotification>(
-        onNotification: _handleMobileUserScroll,
-        child: PageView(
-          controller: _pageController,
-          children: _pages,
-          onPageChanged: (index) {
-            _setNavigationBarVisible(true);
-            if (ref.read(navigationIndexProvider) != index) {
-              ref.read(navigationIndexProvider.notifier).value = index;
-            }
-          },
+      body: HomeBackgroundPage(
+        child: NotificationListener<UserScrollNotification>(
+          onNotification: _handleMobileUserScroll,
+          child: PageView(
+            controller: _pageController,
+            children: _pages,
+            onPageChanged: (index) {
+              _setNavigationBarVisible(true);
+              if (ref.read(navigationIndexProvider) != index) {
+                ref.read(navigationIndexProvider.notifier).value = index;
+              }
+            },
+          ),
         ),
       ),
       bottomNavigationBar: FloatingBottomNavigationBar(

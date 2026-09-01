@@ -6,6 +6,7 @@ import '../../providers/connection_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/cascade_title.dart';
 import '../../widgets/frosted_header_background.dart';
+import '../../widgets/soft_superellipse_border.dart';
 import 'create_chat_page.dart';
 import 'chat_list_item.dart';
 import 'search_bar.dart';
@@ -182,6 +183,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         else
           GradientFrostedHeaderBackground(
             headerHeight: headerHeight,
+            transparentChildBackground: true,
+            stretchContent: false,
             headerChild: Align(
               alignment: Alignment.topLeft,
               child: Padding(
@@ -217,8 +220,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             },
             backgroundColor: AppColors.primary,
             elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+            shape: SoftSuperellipseBorder(
+              borderRadius: BorderRadius.circular(widget.embedded ? 18 : 24),
+              exponent: SoftSuperellipseBorder.defaultExponent,
             ),
             child: Icon(
               Icons.add_rounded,
@@ -233,6 +237,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     if (widget.embedded) {
       return ColoredBox(color: colors.surface, child: content);
     }
-    return Scaffold(backgroundColor: listBackground, body: content);
+    return Scaffold(backgroundColor: Colors.transparent, body: content);
   }
 }

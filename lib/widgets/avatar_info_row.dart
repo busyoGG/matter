@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'home_background.dart';
 import 'soft_superellipse_border.dart';
 
 /// A list row with an elevated avatar, a visual separator, and an elevated
@@ -47,19 +48,51 @@ class AvatarInfoRow extends StatelessWidget {
       exponent: SoftSuperellipseBorder.defaultExponent,
     );
 
+    final homeScope = HomeBackgroundScope.maybeOf(context);
+    final hasHomeBackground = homeScope?.enabled == true;
+    final avatarMaterial = Material(
+      key: avatarShadowKey,
+      color: hasHomeBackground
+          ? Colors.transparent
+          : colors.surfaceContainerHigh,
+      surfaceTintColor: hasHomeBackground ? Colors.transparent : null,
+      elevation: 5,
+      shadowColor: shadowColor,
+      shape: hasHomeBackground
+          ? avatarShape.copyWith(side: BorderSide.none)
+          : avatarShape,
+      clipBehavior: Clip.antiAlias,
+      child: avatar,
+    );
+    final cardMaterial = Material(
+      key: cardKey,
+      color: hasHomeBackground
+          ? Colors.transparent
+          : cardColor ?? colors.surface,
+      surfaceTintColor: hasHomeBackground ? Colors.transparent : null,
+      elevation: 5,
+      shadowColor: shadowColor,
+      shape: hasHomeBackground
+          ? cardShape.copyWith(side: BorderSide.none)
+          : cardShape,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(padding: cardPadding, child: child),
+    );
+
     return Padding(
       padding: rowPadding,
       child: Row(
         children: [
-          Material(
-            key: avatarShadowKey,
-            color: colors.surfaceContainerHigh,
-            elevation: 5,
-            shadowColor: shadowColor,
-            shape: avatarShape,
-            clipBehavior: Clip.antiAlias,
-            child: avatar,
-          ),
+          hasHomeBackground
+              ? HomeBackdropCard(
+                  shape: avatarShape,
+                  color: homeCardSurfaceColor(
+                    context,
+                    colors.surfaceContainerHigh,
+                  ),
+                  child: avatarMaterial,
+                )
+              : avatarMaterial,
           const SizedBox(width: 9),
           Container(
             key: separatorKey,
@@ -72,15 +105,16 @@ class AvatarInfoRow extends StatelessWidget {
           ),
           const SizedBox(width: 9),
           Expanded(
-            child: Material(
-              key: cardKey,
-              color: cardColor ?? colors.surfaceContainerLow,
-              elevation: 5,
-              shadowColor: shadowColor,
-              shape: cardShape,
-              clipBehavior: Clip.antiAlias,
-              child: Padding(padding: cardPadding, child: child),
-            ),
+            child: hasHomeBackground
+                ? HomeBackdropCard(
+                    shape: cardShape,
+                    color: homeCardSurfaceColor(
+                      context,
+                      cardColor ?? colors.surface,
+                    ),
+                    child: cardMaterial,
+                  )
+                : cardMaterial,
           ),
         ],
       ),

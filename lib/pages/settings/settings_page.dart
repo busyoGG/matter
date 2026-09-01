@@ -19,6 +19,7 @@ import '../../widgets/app_avatar.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/frosted_header_background.dart';
 import 'encryption_page.dart';
+import 'home_background_settings_page.dart';
 import 'log_viewer_page.dart';
 import 'profile_edit_page.dart';
 
@@ -636,7 +637,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -791,6 +792,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         title: '主题',
                         subtitle: themeModeLabel(themeMode),
                         onTap: _selectThemeMode,
+                      ),
+                      _SettingItem(
+                        icon: Icons.wallpaper_rounded,
+                        iconColor: AppColors.primary,
+                        title: '首页背景',
+                        subtitle: '四个首页共用一张本地图片',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  const HomeBackgroundSettingsPage(),
+                            ),
+                          );
+                        },
                       ),
                       _SettingItem(
                         icon: Icons.notifications_rounded,

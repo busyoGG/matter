@@ -199,12 +199,16 @@ class GradientFrostedHeaderBackground extends StatefulWidget {
   final double headerHeight;
   final Widget child;
   final Widget? headerChild;
+  final bool transparentChildBackground;
+  final bool stretchContent;
 
   const GradientFrostedHeaderBackground({
     super.key,
     required this.headerHeight,
     required this.child,
     this.headerChild,
+    this.transparentChildBackground = false,
+    this.stretchContent = true,
   });
 
   @override
@@ -348,14 +352,19 @@ class _GradientFrostedHeaderBackgroundState
     required double headerHeight,
     required Widget headerFilter,
   }) {
+    final scrollingChild = widget.stretchContent
+        ? NotificationListener<ScrollNotification>(
+            onNotification: _handleRealtimeScrollNotification,
+            child: widget.child,
+          )
+        : widget.child;
     final child = ScrollConfiguration(
       behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
       child: ColoredBox(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: NotificationListener<ScrollNotification>(
-          onNotification: _handleRealtimeScrollNotification,
-          child: widget.child,
-        ),
+        color: widget.transparentChildBackground
+            ? Colors.transparent
+            : Theme.of(context).scaffoldBackgroundColor,
+        child: scrollingChild,
       ),
     );
     final headerChild = widget.headerChild;
@@ -384,6 +393,9 @@ class _GradientFrostedHeaderBackgroundState
   }
 
   Widget _buildWithStretch(Widget child) {
+    if (!widget.stretchContent) {
+      return child;
+    }
     return ValueListenableBuilder<double>(
       valueListenable: _stretchStrength,
       builder: (context, stretchStrength, child) => StretchEffect(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/chat_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/home_background.dart';
 import 'chat_list_item.dart';
 
 class ChatSearchBar extends ConsumerStatefulWidget {
@@ -39,63 +40,80 @@ class _ChatSearchBarState extends ConsumerState<ChatSearchBar> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final homeScope = HomeBackgroundScope.maybeOf(context);
+    final hasHomeBackground = homeScope?.enabled == true;
+    final searchShape = homeCardShape(borderRadius: AppRadii.surface);
+    final searchBar = Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: hasHomeBackground
+            ? Colors.transparent
+            : colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppRadii.surface),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 12),
+          Icon(
+            Icons.search_rounded,
+            color: colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
+              decoration: InputDecoration(
+                hintText: '搜索聊天',
+                hintStyle: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 15,
+                ),
+                filled: false,
+                fillColor: Colors.transparent,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                isDense: true,
+              ),
+              onTap: _startSearch,
+              onChanged: (value) {
+                if (value.trim().isNotEmpty) {
+                  ref.read(searchRoomsProvider(value.trim()));
+                }
+              },
+            ),
+          ),
+          if (_isSearching)
+            GestureDetector(
+              onTap: _stopSearch,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Icon(
+                  Icons.close_rounded,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 18,
+                ),
+              ),
+            )
+          else
+            const SizedBox(width: 12),
+        ],
+      ),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Container(
-        height: 44,
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(AppRadii.surface),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 12),
-            Icon(
-              Icons.search_rounded,
-              color: colorScheme.onSurfaceVariant,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                style: TextStyle(color: colorScheme.onSurface, fontSize: 15),
-                decoration: InputDecoration(
-                  hintText: '搜索聊天',
-                  hintStyle: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 15,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                  isDense: true,
-                ),
-                onTap: _startSearch,
-                onChanged: (value) {
-                  if (value.trim().isNotEmpty) {
-                    ref.read(searchRoomsProvider(value.trim()));
-                  }
-                },
+      child: hasHomeBackground
+          ? HomeBackdropCard(
+              shape: searchShape,
+              color: homeCardSurfaceColor(
+                context,
+                colorScheme.surfaceContainerHighest,
               ),
-            ),
-            if (_isSearching)
-              GestureDetector(
-                onTap: _stopSearch,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Icon(
-                    Icons.close_rounded,
-                    color: colorScheme.onSurfaceVariant,
-                    size: 18,
-                  ),
-                ),
-              )
-            else
-              const SizedBox(width: 12),
-          ],
-        ),
-      ),
+              child: searchBar,
+            )
+          : searchBar,
     );
   }
 }

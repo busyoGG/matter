@@ -7,6 +7,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_avatar.dart';
 import '../../widgets/avatar_info_row.dart';
 import '../../widgets/frosted_header_background.dart';
+import '../../widgets/home_background.dart';
 import '../chat/action_failure_message.dart';
 import '../chat/chat_detail_page.dart';
 
@@ -27,7 +28,7 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
     final contactsAsync = ref.watch(contactsProvider);
 
     return Scaffold(
-      backgroundColor: listBackground,
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -54,41 +55,49 @@ class _ContactsPageState extends ConsumerState<ContactsPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colors.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(AppRadii.surface),
+              child: HomeBackdropCard(
+                shape: homeCardShape(borderRadius: AppRadii.surface),
+                color: homeCardSurfaceColor(
+                  context,
+                  colors.surfaceContainerHighest,
                 ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 12),
-                    Icon(
-                      Icons.search_rounded,
-                      color: colors.onSurfaceVariant,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        style: TextStyle(color: colors.onSurface, fontSize: 15),
-                        decoration: InputDecoration(
-                          hintText: '搜索联系人',
-                          hintStyle: TextStyle(
-                            color: colors.onSurfaceVariant,
+                child: SizedBox(
+                  height: 44,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.search_rounded,
+                        color: colors.onSurfaceVariant,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          style: TextStyle(
+                            color: colors.onSurface,
                             fontSize: 15,
                           ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.zero,
-                          isDense: true,
+                          decoration: InputDecoration(
+                            hintText: '搜索联系人',
+                            hintStyle: TextStyle(
+                              color: colors.onSurfaceVariant,
+                              fontSize: 15,
+                            ),
+                            filled: false,
+                            fillColor: Colors.transparent,
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                            isDense: true,
+                          ),
+                          onChanged: (value) {
+                            setState(() => _searchQuery = value.toLowerCase());
+                          },
                         ),
-                        onChanged: (value) {
-                          setState(() => _searchQuery = value.toLowerCase());
-                        },
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
+                      const SizedBox(width: 12),
+                    ],
+                  ),
                 ),
               ),
             ),
