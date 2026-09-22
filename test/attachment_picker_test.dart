@@ -132,6 +132,14 @@ void main() {
     expect(config.jpegQuality, 100);
   });
 
+  test('image editor exposes live shape drawing tools', () {
+    const page = ChatImageEditorPage(imagePath: '/original/photo.png');
+    final tools = page.paintEditorConfigs.tools;
+
+    expect(tools, contains(PaintMode.rect));
+    expect(tools, contains(PaintMode.circle));
+  });
+
   test(
     'coordinates are validated and normalized without exponent notation',
     () {
@@ -178,8 +186,8 @@ void main() {
       find.descendant(
         of: find.byKey(const ValueKey('attachment-picker-surface')),
         matching: find.byWidgetPredicate(
-          (widget) => widget is Material &&
-              widget.shape is SoftSuperellipseBorder,
+          (widget) =>
+              widget is Material && widget.shape is SoftSuperellipseBorder,
         ),
       ),
     );

@@ -26,6 +26,36 @@ class ChatImageEditorPage extends StatelessWidget {
     outputFormat: _editorOutputFormat(mimeType),
   );
 
+  @visibleForTesting
+  PaintEditorConfigs get paintEditorConfigs => const PaintEditorConfigs(
+    tools: [
+      PaintMode.moveAndZoom,
+      PaintMode.freeStyle,
+      PaintMode.arrow,
+      PaintMode.line,
+      PaintMode.rect,
+      PaintMode.circle,
+      PaintMode.pixelate,
+      PaintMode.blur,
+      PaintMode.eraser,
+    ],
+    style: PaintEditorStyle(
+      appBarBackground: AppColors.background,
+      appBarColor: AppColors.onBackground,
+      background: AppColors.background,
+      bottomBarBackground: AppColors.surface,
+      bottomBarActiveItemColor: AppColors.primary,
+      bottomBarInactiveItemColor: AppColors.onSurface,
+      initialColor: AppColors.primary,
+      uiOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: AppColors.surface,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final editorTheme = Theme.of(context).copyWith(
@@ -72,34 +102,7 @@ class ChatImageEditorPage extends StatelessWidget {
             ),
           ),
         ),
-        paintEditor: const PaintEditorConfigs(
-          tools: [
-            PaintMode.moveAndZoom,
-            PaintMode.freeStyle,
-            PaintMode.arrow,
-            PaintMode.line,
-            PaintMode.rect,
-            PaintMode.circle,
-            PaintMode.pixelate,
-            PaintMode.blur,
-            PaintMode.eraser,
-          ],
-          style: PaintEditorStyle(
-            appBarBackground: AppColors.background,
-            appBarColor: AppColors.onBackground,
-            background: AppColors.background,
-            bottomBarBackground: AppColors.surface,
-            bottomBarActiveItemColor: AppColors.primary,
-            bottomBarInactiveItemColor: AppColors.onSurface,
-            initialColor: AppColors.primary,
-            uiOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.light,
-              systemNavigationBarColor: AppColors.surface,
-              systemNavigationBarIconBrightness: Brightness.light,
-            ),
-          ),
-        ),
+        paintEditor: paintEditorConfigs,
         cropRotateEditor: const CropRotateEditorConfigs(
           maxScale: 8,
           style: CropRotateEditorStyle(
